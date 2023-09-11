@@ -1,0 +1,129 @@
+on:
+  workflow_call:
+    inputs:
+      otpVersion:
+        required: true
+        type: string
+      elixirVersion:
+        required: true
+        type: string
+
+name: "Test"
+
+env:
+  ERL_AFLAGS: "-enable-feature all"
+
+jobs:
+  mix_format:
+    name: mix format
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        id: setupBEAM
+        with:
+          otp-version: ${{ inputs.otpVersion }}
+          elixir-version: ${{ inputs.elixirVersion }}
+      - uses: actions/cache@v3
+        with:
+          path: _build
+          key: mix_format-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            mix_format-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - uses: actions/cache@v3
+        with:
+          path: deps
+          key: mix_format-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            mix_format-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - run: mix deps.get
+      - run: mix format --check-formatted
+
+  mix_test:
+    name: mix test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        id: setupBEAM
+        with:
+          otp-version: ${{ inputs.otpVersion }}
+          elixir-version: ${{ inputs.elixirVersion }}
+      - uses: actions/cache@v3
+        with:
+          path: _build
+          key: mix_test-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            mix_test-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - uses: actions/cache@v3
+        with:
+          path: deps
+          key: mix_test-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            mix_test-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - run: mix deps.get
+      - run: mix coveralls.multiple --type html --type github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: mix_test-coverage
+          path: cover/
+
+  credo:
+    name: mix credo
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        id: setupBEAM
+        with:
+          otp-version: ${{ inputs.otpVersion }}
+          elixir-version: ${{ inputs.elixirVersion }}
+      - uses: actions/cache@v3
+        with:
+          path: _build
+          key: credo-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            credo-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - uses: actions/cache@v3
+        with:
+          path: deps
+          key: credo-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            credo-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - run: mix deps.get
+      - run: mix credo
+
+  dialyxir:
+    name: mix dialyzer
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        id: setupBEAM
+        with:
+          otp-version: ${{ inputs.otpVersion }}
+          elixir-version: ${{ inputs.elixirVersion }}
+      - uses: actions/cache@v3
+        with:
+          path: _build
+          key: dialyxir-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            dialyxir-build-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - uses: actions/cache@v3
+        with:
+          path: deps
+          key: dialyxir-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ hashFiles('mix.exs') }}
+          restore-keys: |
+            dialyxir-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
+      - run: mix deps.get
+      - run: mix dialyzer
