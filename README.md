@@ -1,11 +1,11 @@
 # Oidcc.Plug
 
-[![Main Branch](https://github.com/Erlang-Openid/oidcc_plug/actions/workflows/branch_main.yml/badge.svg?branch=main)](https://github.com/Erlang-Openid/oidcc_plug/actions/workflows/branch_main.yml)
+[![Main Branch](https://github.com/erlef/oidcc_plug/actions/workflows/branch_main.yml/badge.svg?branch=main)](https://github.com/erlef/oidcc_plug/actions/workflows/branch_main.yml)
 [![Module Version](https://img.shields.io/hexpm/v/oidcc_plug.svg)](https://hex.pm/packages/oidcc_plug)
 [![Total Download](https://img.shields.io/hexpm/dt/oidcc_plug.svg)](https://hex.pm/packages/oidcc_plug)
-[![License](https://img.shields.io/hexpm/l/oidcc_plug.svg)](https://github.com/Erlang-OpenID/oidcc_plug/blob/main/LICENSE)
-[![Last Updated](https://img.shields.io/github/last-commit/Erlang-OpenID/oidcc_plug.svg)](https://github.com/Erlang-OpenID/oidcc_plug/commits/master)
-[![Coverage Status](https://coveralls.io/repos/github/Erlang-Openid/oidcc_plug/badge.svg?branch=main)](https://coveralls.io/github/Erlang-Openid/oidcc_plug?branch=main)
+[![License](https://img.shields.io/hexpm/l/oidcc_plug.svg)](https://github.com/erlef/oidcc_plug/blob/main/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/erlef/oidcc_plug.svg)](https://github.com/erlef/oidcc_plug/commits/master)
+[![Coverage Status](https://coveralls.io/repos/github/erlef/oidcc_plug/badge.svg?branch=main)](https://coveralls.io/github/erlef/oidcc_plug?branch=main)
 
 Plug Integration for [`oidcc`](https://hex.pm/packages/oidcc) library.
 

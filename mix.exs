@@ -9,7 +9,7 @@ defmodule Oidcc.Plug.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "Oidcc Plug",
-      source_url: "https://github.com/Erlang-Openid/oidcc_plug",
+      source_url: "https://github.com/erlef/oidcc_plug",
       docs: &docs/0,
       description: """
       Plug Integration for the oidcc OpenID Connect Library
@@ -44,7 +44,7 @@ defmodule Oidcc.Plug.MixProject do
         "README*"
       ],
       licenses: ["Apache-2.0"],
-      links: %{"Github" => "https://github.com/Erlang-Openid/oidcc_plug"}
+      links: %{"Github" => "https://github.com/erlef/oidcc_plug"}
     ]
   end
 

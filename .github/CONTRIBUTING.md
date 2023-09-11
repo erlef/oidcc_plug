@@ -5,9 +5,9 @@
 We look forward to your contributions! Here are some examples how you can
 contribute:
 
-- [Report a bug](https://github.com/Erlang-Openid/oidcc_plug/issues/new?labels=bug&template=BUG.md)
-- [Propose a new feature](https://github.com/Erlang-Openid/oidcc_plug/issues/new?labels=enhancement&template=FEATURE.md)
-- [Send a pull request](https://github.com/Erlang-Openid/oidcc_plug/pulls)
+- [Report a bug](https://github.com/erlef/oidcc_plug/issues/new?labels=bug&template=BUG.md)
+- [Propose a new feature](https://github.com/erlef/oidcc_plug/issues/new?labels=enhancement&template=FEATURE.md)
+- [Send a pull request](https://github.com/erlef/oidcc_plug/pulls)
 
 ## We have a Code of Conduct
 
@@ -18,7 +18,7 @@ project you agree to abide by its terms.
 ## Any contributions you make will be under the Apache 2.0 License
 
 When you submit code changes, your submissions are understood to be under the
-same [Apache 2.0](https://github.com/Erlang-Openid/oidcc_plug/blob/main/LICENSE)
+same [Apache 2.0](https://github.com/erlef/oidcc_plug/blob/main/LICENSE)
 that covers the project. By contributing to this project, you agree that your
 contributions will be licensed under its Apache 2.0 License.
 
@@ -104,7 +104,7 @@ The following commands can be used to perform the initial checkout of
 `oidcc_plug`:
 
 ```bash
-$ git clone git@github.com:Erlang-Openid/oidcc_plug.git
+$ git clone git@github.com:erlef/oidcc_plug.git
 
 $ cd oidcc
 ```
