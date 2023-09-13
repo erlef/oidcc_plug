@@ -129,14 +129,24 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
     end
 
     test "uses cache if provided and found" do
+      defmodule Cache do
+        alias Oidcc.Plug.Cache
+
+        @behaviour Cache
+
+        @impl Cache
+        def get(_type, _token, _conn), do: {:ok, %Oidcc.TokenIntrospection{active: true}}
+
+        @impl Cache
+        def put(_type, _token, _data, _conn), do: :ok
+      end
+
       opts =
         IntrospectToken.init(
           provider: ProviderName,
           client_id: "client_id",
           client_secret: "client_secret",
-          cache: fn _conn, "token" ->
-            {:ok, %Oidcc.TokenIntrospection{active: true}}
-          end
+          cache: Cache
         )
 
       assert %{
