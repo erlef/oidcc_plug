@@ -127,14 +127,24 @@ defmodule Oidcc.Plug.LoadUserinfoTest do
     end
 
     test "uses cache if provided and found" do
+      defmodule Cache do
+        alias Oidcc.Plug.Cache
+
+        @behaviour Cache
+
+        @impl Cache
+        def get(_type, _token, _conn), do: {:ok, %{"sub" => "sub"}}
+
+        @impl Cache
+        def put(_type, _token, _data, _conn), do: :ok
+      end
+
       opts =
         LoadUserinfo.init(
           provider: ProviderName,
           client_id: "client_id",
           client_secret: "client_secret",
-          cache: fn _conn, "token" ->
-            {:ok, %{"sub" => "sub"}}
-          end
+          cache: Cache
         )
 
       assert %{

@@ -7,7 +7,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
   This module should be used together with `Oidcc.Plug.ExtractAuthorization`.
 
   This plug will send a userinfo request for ever request. To avoid this,
-  provide a `cache` to the options.
+  provide a `cache` to `t:opts/0`.
 
   ```elixir
   defmodule SampleAppWeb.Endpoint do
@@ -43,7 +43,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
   * `client_secret` - OAuth Client Secret to use for the introspection
   * `userinfo_retrieve_opts` - Options to pass to userinfo loading
   * `send_inactive_token_response` - Customize Error Response for inactive token
-  * `cache` - Cache token introspection
+  * `cache` - Cache userinfo response - See `Oidcc.Plug.Cache`
   """
   @type opts :: [
           provider: GenServer.name(),
@@ -51,9 +51,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
           client_secret: String.t(),
           userinfo_retrieve_opts: :oidcc_userinfo.retrieve_opts(),
           send_inactive_token_response: (conn :: Plug.Conn.t() -> Plug.Conn.t()),
-          cache:
-            (conn :: Plug.Conn.t(), token :: String.t() ->
-               {:ok, :oidcc_jwt_util.claims()} | :not_found)
+          cache: Oidcc.Plug.Cache.t()
         ]
 
   defmodule Error do
@@ -78,7 +76,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
         :client_secret,
         userinfo_retrieve_opts: %{},
         send_inactive_token_response: &send_inactive_token_response/1,
-        cache: &noop_cache/2
+        cache: Oidcc.Plug.Cache.Noop
       ])
 
   @impl Plug
@@ -98,11 +96,11 @@ defmodule Oidcc.Plug.LoadUserinfo do
 
     cache = Keyword.fetch!(opts, :cache)
 
-    case cache.(conn, access_token) do
-      {:ok, claims} ->
+    case cache.get(:userinfo, access_token, conn) do
+      {:ok, %{} = claims} ->
         put_private(conn, __MODULE__, claims)
 
-      :not_found ->
+      :miss ->
         case Oidcc.retrieve_userinfo(
                access_token,
                provider,
@@ -111,6 +109,8 @@ defmodule Oidcc.Plug.LoadUserinfo do
                userinfo_retrieve_opts
              ) do
           {:ok, claims} ->
+            :ok = cache.put(:introspection, access_token, claims, conn)
+
             put_private(conn, __MODULE__, claims)
 
           {:error, {:http_error, 401, _body}} ->
@@ -136,8 +136,4 @@ defmodule Oidcc.Plug.LoadUserinfo do
     |> halt()
     |> send_resp(:unauthorized, "The provided token is inactive")
   end
-
-  @spec noop_cache(conn :: Plug.Conn.t(), token :: String.t()) ::
-          {:ok, :oidcc_jwt_util.claims()} | :not_found
-  defp noop_cache(_conn, _token), do: :not_found
 end

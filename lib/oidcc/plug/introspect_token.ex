@@ -7,7 +7,7 @@ defmodule Oidcc.Plug.IntrospectToken do
   This module should be used together with `Oidcc.Plug.ExtractAuthorization`.
 
   This plug will send an introspection request for ever request. To avoid this,
-  provide a `cache` to the options.
+  provide a `cache` to `t:opts/0`.
 
   ```elixir
   defmodule SampleAppWeb.Endpoint do
@@ -43,7 +43,7 @@ defmodule Oidcc.Plug.IntrospectToken do
   * `client_secret` - OAuth Client Secret to use for the introspection
   * `token_introspection_opts` - Options to pass to the introspection
   * `send_inactive_token_response` - Customize Error Response for inactive token
-  * `cache` - Cache token introspection
+  * `cache` - Cache token introspection - See `Oidcc.Plug.Cache`
   """
   @type opts :: [
           provider: GenServer.name(),
@@ -53,9 +53,7 @@ defmodule Oidcc.Plug.IntrospectToken do
           send_inactive_token_response:
             (conn :: Plug.Conn.t(), introspection :: Oidcc.TokenIntrospection.t() ->
                Plug.Conn.t()),
-          cache:
-            (conn :: Plug.Conn.t(), token :: String.t() ->
-               {:ok, Oidcc.TokenIntrospection.t()} | :not_found)
+          cache: Oidcc.Plug.Cache.t()
         ]
 
   defmodule Error do
@@ -80,7 +78,7 @@ defmodule Oidcc.Plug.IntrospectToken do
         :client_secret,
         token_introspection_opts: %{},
         send_inactive_token_response: &send_inactive_token_response/2,
-        cache: &noop_cache/2
+        cache: Oidcc.Plug.Cache.Noop
       ])
 
   @impl Plug
@@ -97,11 +95,11 @@ defmodule Oidcc.Plug.IntrospectToken do
 
     cache = Keyword.fetch!(opts, :cache)
 
-    case cache.(conn, access_token) do
-      {:ok, introspection} ->
+    case cache.get(:introspection, access_token, conn) do
+      {:ok, %Oidcc.TokenIntrospection{} = introspection} ->
         put_private(conn, __MODULE__, introspection)
 
-      :not_found ->
+      :miss ->
         case Oidcc.introspect_token(
                access_token,
                provider,
@@ -110,9 +108,13 @@ defmodule Oidcc.Plug.IntrospectToken do
                token_introspection_opts
              ) do
           {:ok, %Oidcc.TokenIntrospection{active: true} = introspection} ->
+            :ok = cache.put(:introspection, access_token, introspection, conn)
+
             put_private(conn, __MODULE__, introspection)
 
           {:ok, %Oidcc.TokenIntrospection{active: false} = introspection} ->
+            :ok = cache.put(:introspection, access_token, introspection, conn)
+
             conn
             |> put_private(__MODULE__, introspection)
             |> send_inactive_token_response.(introspection)
@@ -138,8 +140,4 @@ defmodule Oidcc.Plug.IntrospectToken do
     |> halt()
     |> send_resp(:unauthorized, "The provided token is inactive")
   end
-
-  @spec noop_cache(conn :: Plug.Conn.t(), token :: String.t()) ::
-          {:ok, Oidcc.TokenIntrospection.t()} | :not_found
-  defp noop_cache(_conn, _token), do: :not_found
 end
