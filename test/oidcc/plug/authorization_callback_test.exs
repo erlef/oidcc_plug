@@ -23,7 +23,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
       opts =
         AuthorizationCallback.init(
           provider: ProviderName,
-          client_id: "client_id",
+          client_id: fn -> "client_id" end,
           client_secret: "client_secret",
           redirect_uri: "http://localhost:8080/oidc/return"
         )
