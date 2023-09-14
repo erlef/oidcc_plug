@@ -31,6 +31,8 @@ defmodule Oidcc.Plug.IntrospectToken do
 
   import Plug.Conn, only: [put_private: 3, halt: 1, send_resp: 3]
 
+  import Oidcc.Plug.Config, only: [evaluate_config: 1]
+
   alias Oidcc.Plug.ExtractAuthorization
 
   @typedoc """
@@ -47,8 +49,8 @@ defmodule Oidcc.Plug.IntrospectToken do
   """
   @type opts :: [
           provider: GenServer.name(),
-          client_id: String.t(),
-          client_secret: String.t(),
+          client_id: String.t() | (-> String.t()),
+          client_secret: String.t() | (-> String.t()),
           token_introspection_opts: :oidcc_token_introspection.opts(),
           send_inactive_token_response:
             (conn :: Plug.Conn.t(), introspection :: Oidcc.TokenIntrospection.t() ->
@@ -86,8 +88,8 @@ defmodule Oidcc.Plug.IntrospectToken do
 
   def call(%Plug.Conn{private: %{ExtractAuthorization => access_token}} = conn, opts) do
     provider = Keyword.fetch!(opts, :provider)
-    client_id = Keyword.fetch!(opts, :client_id)
-    client_secret = Keyword.fetch!(opts, :client_secret)
+    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
+    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
 
     token_introspection_opts = Keyword.fetch!(opts, :token_introspection_opts)
 

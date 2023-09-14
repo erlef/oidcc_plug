@@ -24,6 +24,8 @@ defmodule Oidcc.Plug.Authorize do
   import Plug.Conn,
     only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_peer_data: 1, get_req_header: 2]
 
+  import Oidcc.Plug.Config, only: [evaluate_config: 1]
+
   defmodule Error do
     @moduledoc """
     Redirect URI Generation Failed
@@ -51,11 +53,11 @@ defmodule Oidcc.Plug.Authorize do
   """
   @type opts :: [
           scopes: :oidcc_scope.scopes(),
-          redirect_uri: String.t(),
+          redirect_uri: String.t() | (-> String.t()),
           url_extension: :oidcc_http_util.query_params(),
           provider: GenServer.name(),
-          client_id: String.t(),
-          client_secret: String.t()
+          client_id: String.t() | (-> String.t()),
+          client_secret: String.t() | (-> String.t())
         ]
 
   @impl Plug
@@ -73,8 +75,9 @@ defmodule Oidcc.Plug.Authorize do
   @impl Plug
   def call(%Plug.Conn{params: params} = conn, opts) do
     provider = Keyword.fetch!(opts, :provider)
-    client_id = Keyword.fetch!(opts, :client_id)
-    client_secret = Keyword.fetch!(opts, :client_secret)
+    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
+    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
+    redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
 
     state = Map.get(params, "state", :undefined)
     nonce = 128 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
@@ -85,8 +88,8 @@ defmodule Oidcc.Plug.Authorize do
 
     authorization_opts =
       opts
-      |> Keyword.take([:redirect_uri, :url_extension, :scopes])
-      |> Keyword.merge(nonce: nonce, state: state)
+      |> Keyword.take([:url_extension, :scopes])
+      |> Keyword.merge(nonce: nonce, state: state, redirect_uri: redirect_uri)
       |> Map.new()
 
     case Oidcc.create_redirect_url(provider, client_id, client_secret, authorization_opts) do

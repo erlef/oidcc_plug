@@ -82,6 +82,8 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   import Plug.Conn,
     only: [get_session: 2, delete_session: 2, put_private: 3, get_peer_data: 1, get_req_header: 2]
 
+  import Oidcc.Plug.Config, only: [evaluate_config: 1]
+
   @typedoc """
   Plug Configuration Options
 
@@ -100,9 +102,9 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   """
   @type opts() :: [
           provider: GenServer.name(),
-          client_id: String.t(),
-          client_secret: String.t(),
-          redirect_uri: String.t(),
+          client_id: String.t() | (-> String.t()),
+          client_secret: String.t() | (-> String.t()),
+          redirect_uri: String.t() | (-> String.t()),
           check_useragent: boolean(),
           check_peer_ip: boolean(),
           retrieve_userinfo: boolean(),
@@ -134,8 +136,9 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   @impl Plug
   def call(%Plug.Conn{params: params, body_params: body_params} = conn, opts) do
     provider = Keyword.fetch!(opts, :provider)
-    client_id = Keyword.fetch!(opts, :client_id)
-    client_secret = Keyword.fetch!(opts, :client_secret)
+    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
+    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
+    redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
 
     params = Map.merge(params, body_params)
 
@@ -157,9 +160,9 @@ defmodule Oidcc.Plug.AuthorizationCallback do
            scopes = :oidcc_scope.parse(scope),
            token_opts =
              opts
-             |> Keyword.take([:redirect_uri, :request_opts])
+             |> Keyword.take([:request_opts])
              |> Map.new()
-             |> Map.merge(%{nonce: nonce, scope: scopes}),
+             |> Map.merge(%{nonce: nonce, scope: scopes, redirect_uri: redirect_uri}),
            {:ok, token} <-
              retrieve_token(
                code,
