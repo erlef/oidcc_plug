@@ -26,6 +26,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
   end
   ```
   """
+  @moduledoc since: "0.1.0"
 
   @behaviour Plug
 
@@ -47,6 +48,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
   * `send_inactive_token_response` - Customize Error Response for inactive token
   * `cache` - Cache userinfo response - See `Oidcc.Plug.Cache`
   """
+  @typedoc since: "0.1.0"
   @type opts :: [
           provider: GenServer.name(),
           client_id: String.t() | (-> String.t()),
@@ -62,6 +64,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
 
     Check the `reason` field for ther exact reason
     """
+    @moduledoc since: "0.1.0"
 
     defexception [:reason]
 

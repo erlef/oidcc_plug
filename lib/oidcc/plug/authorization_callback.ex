@@ -76,6 +76,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   end
   ```
   """
+  @moduledoc since: "0.1.0"
 
   @behaviour Plug
 
@@ -100,6 +101,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   * `retrieve_userinfo` - whether to load userinfo from the provider
   * `request_opts` - request opts for http calls to provider
   """
+  @typedoc since: "0.1.0"
   @type opts() :: [
           provider: GenServer.name(),
           client_id: String.t() | (-> String.t()),
@@ -111,6 +113,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
           request_opts: :oidcc_http_util.request_opts()
         ]
 
+  @typedoc since: "0.1.0"
   @type error() ::
           :oidcc_client_context.error()
           | :oidcc_token.error()

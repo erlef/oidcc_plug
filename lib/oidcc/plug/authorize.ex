@@ -18,6 +18,7 @@ defmodule Oidcc.Plug.Authorize do
   end
   ```
   """
+  @moduledoc since: "0.1.0"
 
   @behaviour Plug
 
@@ -32,6 +33,7 @@ defmodule Oidcc.Plug.Authorize do
 
     Check the `reason` field for ther exact reason
     """
+    @moduledoc since: "0.1.0"
 
     defexception [:reason]
 
@@ -51,6 +53,7 @@ defmodule Oidcc.Plug.Authorize do
   * `client_id` - OAuth Client ID to use for the introspection
   * `client_secret` - OAuth Client Secret to use for the introspection
   """
+  @typedoc since: "0.1.0"
   @type opts :: [
           scopes: :oidcc_scope.scopes(),
           redirect_uri: String.t() | (-> String.t()),

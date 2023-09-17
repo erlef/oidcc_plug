@@ -21,6 +21,7 @@ defmodule Oidcc.Plug.ExtractAuthorization do
   end
   ```
   """
+  @moduledoc since: "0.1.0"
 
   @behaviour Plug
 
@@ -33,6 +34,7 @@ defmodule Oidcc.Plug.ExtractAuthorization do
 
   * `send_invalid_header_response` - Customize Error Response for invalid header
   """
+  @typedoc since: "0.1.0"
   @type opts :: [
           {:send_invalid_header_response,
            (conn :: Plug.Conn.t(), given_header :: [String.t()] -> Plug.Conn.t())}

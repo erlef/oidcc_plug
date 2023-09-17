@@ -21,6 +21,7 @@ defmodule Oidcc.Plug.ValidateJwtToken do
   end
   ```
   """
+  @moduledoc since: "0.1.0"
 
   @behaviour Plug
 
@@ -40,6 +41,7 @@ defmodule Oidcc.Plug.ValidateJwtToken do
   * `client_secret` - OAuth Client Secret to use for the introspection
   * `send_inactive_token_response` - Customize Error Response for inactive token
   """
+  @typedoc since: "0.1.0"
   @type opts :: [
           provider: GenServer.name(),
           client_id: String.t() | (-> String.t()),
@@ -53,6 +55,7 @@ defmodule Oidcc.Plug.ValidateJwtToken do
 
     Check the `reason` field for ther exact reason
     """
+    @moduledoc since: "0.1.0"
 
     defexception [:reason]
 
