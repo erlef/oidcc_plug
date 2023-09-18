@@ -101,8 +101,13 @@ defmodule Oidcc.Plug.IntrospectToken do
     cache = Keyword.fetch!(opts, :cache)
 
     case cache.get(:introspection, access_token, conn) do
-      {:ok, %Oidcc.TokenIntrospection{} = introspection} ->
+      {:ok, %Oidcc.TokenIntrospection{active: true} = introspection} ->
         put_private(conn, __MODULE__, introspection)
+
+      {:ok, %Oidcc.TokenIntrospection{active: false} = introspection} ->
+        conn
+        |> put_private(__MODULE__, introspection)
+        |> send_inactive_token_response.(introspection)
 
       :miss ->
         case Oidcc.introspect_token(

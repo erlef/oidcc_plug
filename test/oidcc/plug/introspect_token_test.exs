@@ -129,7 +129,7 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
     end
 
     test "uses cache if provided and found" do
-      defmodule Cache do
+      defmodule ActiveCache do
         alias Oidcc.Plug.Cache
 
         @behaviour Cache
@@ -146,12 +146,42 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
           provider: ProviderName,
           client_id: "client_id",
           client_secret: "client_secret",
-          cache: Cache
+          cache: ActiveCache
         )
 
       assert %{
                halted: false,
                private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: true}}
+             } =
+               "get"
+               |> conn("/", "")
+               |> put_private(ExtractAuthorization, "token")
+               |> IntrospectToken.call(opts)
+    end
+
+    test "uses cache if provided and found and inactive" do
+      defmodule InactiveCache do
+        alias Oidcc.Plug.Cache
+
+        @behaviour Cache
+
+        @impl Cache
+        def get(_type, _token, _conn), do: {:ok, %Oidcc.TokenIntrospection{active: false}}
+
+        @impl Cache
+        def put(_type, _token, _data, _conn), do: :ok
+      end
+
+      opts =
+        IntrospectToken.init(
+          provider: ProviderName,
+          client_id: "client_id",
+          client_secret: "client_secret",
+          cache: InactiveCache
+        )
+
+      assert %{
+               private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: false}}
              } =
                "get"
                |> conn("/", "")
