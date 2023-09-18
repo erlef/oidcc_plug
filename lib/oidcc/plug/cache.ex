@@ -25,9 +25,15 @@ defmodule Oidcc.Plug.Cache do
   """
   @doc since: "0.1.0"
   @callback put(
-              type :: :userinfo | :introspection,
+              type :: :userinfo,
               token :: String.t(),
-              data :: Oidcc.TokenIntrospection.t() | :oidcc_jwt_util.claims(),
+              data :: :oidcc_jwt_util.claims(),
+              conn :: Plug.Conn.t()
+            ) :: :ok
+  @callback put(
+              type :: :introspection,
+              token :: String.t(),
+              data :: Oidcc.TokenIntrospection.t(),
               conn :: Plug.Conn.t()
             ) :: :ok
 end

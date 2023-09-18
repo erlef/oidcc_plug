@@ -114,7 +114,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
                userinfo_retrieve_opts
              ) do
           {:ok, claims} ->
-            :ok = cache.put(:introspection, access_token, claims, conn)
+            :ok = cache.put(:userinfo, access_token, claims, conn)
 
             put_private(conn, __MODULE__, claims)
 
