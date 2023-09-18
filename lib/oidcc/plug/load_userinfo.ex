@@ -1,6 +1,6 @@
 defmodule Oidcc.Plug.LoadUserinfo do
   @moduledoc """
-  Validate extracted authorization token using introspection.
+  Validate extracted authorization token using userinfo retrieval.
 
   See: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 
@@ -42,8 +42,8 @@ defmodule Oidcc.Plug.LoadUserinfo do
   ## Options
 
   * `provider` - name of the `Oidcc.ProviderConfiguration.Worker`
-  * `client_id` - OAuth Client ID to use for the introspection
-  * `client_secret` - OAuth Client Secret to use for the introspection
+  * `client_id` - OAuth Client ID to use for the userinfo retrieval
+  * `client_secret` - OAuth Client Secret to use for the userinfo retrieval
   * `userinfo_retrieve_opts` - Options to pass to userinfo loading
   * `send_inactive_token_response` - Customize Error Response for inactive token
   * `cache` - Cache userinfo response - See `Oidcc.Plug.Cache`

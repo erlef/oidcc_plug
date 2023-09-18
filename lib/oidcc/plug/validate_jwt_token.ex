@@ -37,8 +37,8 @@ defmodule Oidcc.Plug.ValidateJwtToken do
   ## Options
 
   * `provider` - name of the `Oidcc.ProviderConfiguration.Worker`
-  * `client_id` - OAuth Client ID to use for the introspection
-  * `client_secret` - OAuth Client Secret to use for the introspection
+  * `client_id` - OAuth Client ID to use for the token validation
+  * `client_secret` - OAuth Client Secret to use for the token validation
   * `send_inactive_token_response` - Customize Error Response for inactive token
   """
   @typedoc since: "0.1.0"
