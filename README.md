@@ -103,7 +103,7 @@ defmodule SampleApp.Application do
       # ...
 
       {Oidcc.ProviderConfiguration.Worker, %{
-        issuer: "https://accounts.google.com/",
+        issuer: "https://accounts.google.com",
         name: SampleApp.GoogleOpenIdConfigurationProvider
       }},
 
