@@ -98,7 +98,7 @@ defmodule Oidcc.Plug.Authorize do
     case Oidcc.create_redirect_url(provider, client_id, client_secret, authorization_opts) do
       {:ok, redirect_uri} ->
         conn
-        |> put_session("#{__MODULE__}", %{nonce: nonce, peer_ip: peer_ip, useragent: useragent})
+        |> put_session(get_session_name(), %{nonce: nonce, peer_ip: peer_ip, useragent: useragent})
         |> put_resp_header("location", IO.iodata_to_binary(redirect_uri))
         |> send_resp(302, "")
 
@@ -106,4 +106,8 @@ defmodule Oidcc.Plug.Authorize do
         raise Error, reason: reason
     end
   end
+
+  @doc false
+  @spec get_session_name :: String.t()
+  def get_session_name, do: inspect(__MODULE__)
 end
