@@ -80,6 +80,8 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
   @behaviour Plug
 
+  alias Oidcc.Plug.Authorize
+
   import Plug.Conn,
     only: [get_session: 2, delete_session: 2, put_private: 3, get_peer_data: 1, get_req_header: 2]
 
@@ -146,7 +148,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     params = Map.merge(params, body_params)
 
     %{nonce: nonce, peer_ip: peer_ip, useragent: useragent} =
-      case get_session(conn, "Oidcc.Plug.Authorize") do
+      case get_session(conn, Authorize.get_session_name()) do
         nil -> %{nonce: :any, peer_ip: nil, useragent: nil}
         %{} = session -> session
       end
@@ -181,7 +183,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
       end
 
     conn
-    |> delete_session("Oidcc.Plug.Authorize")
+    |> delete_session(Authorize.get_session_name())
     |> put_private(__MODULE__, result)
   end
 

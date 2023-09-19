@@ -5,6 +5,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
   import Mock
 
   alias Oidcc.Plug.AuthorizationCallback
+  alias Oidcc.Plug.Authorize
 
   doctest AuthorizationCallback
 
@@ -35,7 +36,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                "get"
                |> conn("/", %{"code" => "code"})
                |> Plug.Test.init_test_session(%{
-                 "Oidcc.Plug.Authorize" => %{
+                 Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
                    useragent: "useragent"
@@ -69,7 +70,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                "get"
                |> conn("/", %{"code" => "code"})
                |> Plug.Test.init_test_session(%{
-                 "Oidcc.Plug.Authorize" => %{
+                 Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
                    useragent: "useragent"
@@ -95,7 +96,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                "get"
                |> conn("/", %{"code" => "code"})
                |> Plug.Test.init_test_session(%{
-                 "Oidcc.Plug.Authorize" => %{
+                 Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
                    useragent: "useragent"
@@ -121,7 +122,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                "get"
                |> conn("/", %{"code" => "code"})
                |> Plug.Test.init_test_session(%{
-                 "Oidcc.Plug.Authorize" => %{
+                 Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 2},
                    useragent: "useragent"
@@ -159,7 +160,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                "get"
                |> conn("/", %{"code" => "code"})
                |> Plug.Test.init_test_session(%{
-                 "Oidcc.Plug.Authorize" => %{
+                 Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 2},
                    useragent: "useragent"
@@ -187,7 +188,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                "get"
                |> conn("/", %{})
                |> Plug.Test.init_test_session(%{
-                 "Oidcc.Plug.Authorize" => %{
+                 Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
                    useragent: "useragent"
@@ -223,7 +224,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                "get"
                |> conn("/", %{"code" => "code"})
                |> Plug.Test.init_test_session(%{
-                 "Oidcc.Plug.Authorize" => %{
+                 Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
                    useragent: "useragent"
@@ -258,7 +259,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
              "get"
              |> conn("/", %{"code" => "code"})
              |> Plug.Test.init_test_session(%{
-               "Oidcc.Plug.Authorize" => %{
+               Authorize.get_session_name() => %{
                  nonce: "nonce",
                  peer_ip: {127, 0, 0, 1},
                  useragent: "useragent"
