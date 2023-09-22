@@ -17,6 +17,11 @@ defmodule Oidcc.Plug.Authorize do
       ]
   end
   ```
+
+  ## Query Params
+
+  * `state` - STate to relay to OpenID Provider. Commonly used for target redirect
+    URL after authorization.
   """
   @moduledoc since: "0.1.0"
 
@@ -83,7 +88,8 @@ defmodule Oidcc.Plug.Authorize do
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
 
     state = Map.get(params, "state", :undefined)
-    nonce = 128 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
+    nonce = 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
+    pkce_verifier = 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
 
     %{address: peer_ip} = get_peer_data(conn)
 
@@ -92,13 +98,23 @@ defmodule Oidcc.Plug.Authorize do
     authorization_opts =
       opts
       |> Keyword.take([:url_extension, :scopes])
-      |> Keyword.merge(nonce: nonce, state: state, redirect_uri: redirect_uri)
+      |> Keyword.merge(
+        nonce: nonce,
+        state: state,
+        redirect_uri: redirect_uri,
+        pkce_verifier: pkce_verifier
+      )
       |> Map.new()
 
     case Oidcc.create_redirect_url(provider, client_id, client_secret, authorization_opts) do
       {:ok, redirect_uri} ->
         conn
-        |> put_session(get_session_name(), %{nonce: nonce, peer_ip: peer_ip, useragent: useragent})
+        |> put_session(get_session_name(), %{
+          nonce: nonce,
+          peer_ip: peer_ip,
+          useragent: useragent,
+          pkce_verifier: pkce_verifier
+        })
         |> put_resp_header("location", IO.iodata_to_binary(redirect_uri))
         |> send_resp(302, "")
 

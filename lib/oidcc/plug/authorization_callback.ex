@@ -147,9 +147,9 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
     params = Map.merge(params, body_params)
 
-    %{nonce: nonce, peer_ip: peer_ip, useragent: useragent} =
+    %{nonce: nonce, peer_ip: peer_ip, useragent: useragent, pkce_verifier: pkce_verifier} =
       case get_session(conn, Authorize.get_session_name()) do
-        nil -> %{nonce: :any, peer_ip: nil, useragent: nil}
+        nil -> %{nonce: :any, peer_ip: nil, useragent: nil, pkce_verifier: :none}
         %{} = session -> session
       end
 
@@ -167,7 +167,12 @@ defmodule Oidcc.Plug.AuthorizationCallback do
              opts
              |> Keyword.take([:request_opts])
              |> Map.new()
-             |> Map.merge(%{nonce: nonce, scope: scopes, redirect_uri: redirect_uri}),
+             |> Map.merge(%{
+               nonce: nonce,
+               scope: scopes,
+               redirect_uri: redirect_uri,
+               pkce_verifier: pkce_verifier
+             }),
            {:ok, token} <-
              retrieve_token(
                code,

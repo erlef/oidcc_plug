@@ -6,7 +6,7 @@ defmodule Oidcc.Plug.IntrospectToken do
 
   This module should be used together with `Oidcc.Plug.ExtractAuthorization`.
 
-  This plug will send an introspection request for ever request. To avoid this,
+  This plug will send an introspection request for every request. To avoid this,
   provide a `cache` to `t:opts/0`.
 
   ```elixir
