@@ -39,7 +39,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                  Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
-                   useragent: "useragent"
+                   useragent: "useragent",
+                   pkce_verifier: "pkce_verifier"
                  }
                })
                |> put_req_header("user-agent", "useragent")
@@ -73,7 +74,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                  Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
-                   useragent: "useragent"
+                   useragent: "useragent",
+                   pkce_verifier: "pkce_verifier"
                  }
                })
                |> put_req_header("user-agent", "useragent")
@@ -99,7 +101,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                  Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
-                   useragent: "useragent"
+                   useragent: "useragent",
+                   pkce_verifier: "pkce_verifier"
                  }
                })
                |> put_req_header("user-agent", "other useragent")
@@ -125,7 +128,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                  Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 2},
-                   useragent: "useragent"
+                   useragent: "useragent",
+                   pkce_verifier: "pkce_verifier"
                  }
                })
                |> put_req_header("user-agent", "useragent")
@@ -163,7 +167,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                  Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 2},
-                   useragent: "useragent"
+                   useragent: "useragent",
+                   pkce_verifier: "pkce_verifier"
                  }
                })
                |> put_req_header("user-agent", "other useragent")
@@ -191,7 +196,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                  Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
-                   useragent: "useragent"
+                   useragent: "useragent",
+                   pkce_verifier: "pkce_verifier"
                  }
                })
                |> put_req_header("user-agent", "useragent")
@@ -227,7 +233,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                  Authorize.get_session_name() => %{
                    nonce: "nonce",
                    peer_ip: {127, 0, 0, 1},
-                   useragent: "useragent"
+                   useragent: "useragent",
+                   pkce_verifier: "pkce_verifier"
                  }
                })
                |> put_req_header("user-agent", "useragent")
@@ -262,7 +269,8 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                Authorize.get_session_name() => %{
                  nonce: "nonce",
                  peer_ip: {127, 0, 0, 1},
-                 useragent: "useragent"
+                 useragent: "useragent",
+                 pkce_verifier: "pkce_verifier"
                }
              })
              |> put_req_header("user-agent", "useragent")

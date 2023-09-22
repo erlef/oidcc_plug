@@ -6,7 +6,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
 
   This module should be used together with `Oidcc.Plug.ExtractAuthorization`.
 
-  This plug will send a userinfo request for ever request. To avoid this,
+  This plug will send a userinfo request for every request. To avoid this,
   provide a `cache` to `t:opts/0`.
 
   ```elixir
