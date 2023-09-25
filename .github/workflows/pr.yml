@@ -31,3 +31,13 @@ jobs:
     with:
       otpVersion: "${{ needs.detectToolVersions.outputs.otpVersion }}"
       elixirVersion: "${{ needs.detectToolVersions.outputs.elixirVersion }}"
+
+  publish:
+    name: "Publish"
+
+    needs: ["detectToolVersions"]
+
+    uses: ./.github/workflows/part_publish.yml
+    with:
+      otpVersion: "${{ needs.detectToolVersions.outputs.otpVersion }}"
+      elixirVersion: "${{ needs.detectToolVersions.outputs.elixirVersion }}"
