@@ -13,10 +13,14 @@ defmodule Oidcc.Plug.Authorize do
         provider: SampleApp.GoogleOpenIdConfigurationProvider,
         client_id: Application.compile_env!(:sample_app, [Oidcc.Plug.Authorize, :client_id]),
         client_secret: Application.compile_env!(:sample_app, [Oidcc.Plug.Authorize, :client_secret]),
-        redirect_uri: "https://localhost:4000/oidcc/callback"
+        redirect_uri: "https://localhost:4000/oidcc/callback",
+        access_type: :confidential
       ]
   end
   ```
+
+  access_type can be `:confidential` or `:public`. confidential will use client credentials during code
+  exchange, public will use pkce.
 
   ## Query Params
 
@@ -57,6 +61,7 @@ defmodule Oidcc.Plug.Authorize do
   * `provider` - name of the `Oidcc.ProviderConfiguration.Worker`
   * `client_id` - OAuth Client ID to use for the introspection
   * `client_secret` - OAuth Client Secret to use for the introspection
+  * `access_type` - `:public` (default) or `:confidential`
   """
   @typedoc since: "0.1.0"
   @type opts :: [
@@ -65,7 +70,8 @@ defmodule Oidcc.Plug.Authorize do
           url_extension: :oidcc_http_util.query_params(),
           provider: GenServer.name(),
           client_id: String.t() | (-> String.t()),
-          client_secret: String.t() | (-> String.t())
+          client_secret: String.t() | (-> String.t()),
+          access_type: (:public | :confidential)
         ]
 
   @impl Plug
@@ -76,6 +82,7 @@ defmodule Oidcc.Plug.Authorize do
         :client_id,
         :client_secret,
         :redirect_uri,
+        access_type: :public,
         url_extension: [],
         scopes: ["openid"]
       ])
@@ -86,10 +93,14 @@ defmodule Oidcc.Plug.Authorize do
     client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
     client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
+    access_type = opts |> Keyword.get(:access_type, :public)
 
     state = Map.get(params, "state", :undefined)
     nonce = 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
-    pkce_verifier = 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
+    pkce_verifier =
+      if access_type == :public,
+         do: 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false),
+         else: :none
 
     %{address: peer_ip} = get_peer_data(conn)
 
