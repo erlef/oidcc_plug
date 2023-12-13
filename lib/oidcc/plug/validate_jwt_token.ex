@@ -70,7 +70,7 @@ defmodule Oidcc.Plug.ValidateJwtToken do
         :provider,
         :client_id,
         :client_secret,
-        send_inactive_token_response: &send_inactive_token_response/1
+        send_inactive_token_response: &__MODULE__.send_inactive_token_response/1
       ])
 
   @impl Plug
@@ -104,8 +104,9 @@ defmodule Oidcc.Plug.ValidateJwtToken do
     """
   end
 
+  @doc false
   @spec send_inactive_token_response(conn :: Plug.Conn.t()) :: Plug.Conn.t()
-  defp send_inactive_token_response(conn) do
+  def send_inactive_token_response(conn) do
     conn
     |> halt()
     |> send_resp(:unauthorized, "The provided token is inactive")
