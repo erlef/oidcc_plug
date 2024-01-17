@@ -89,7 +89,7 @@ defmodule Oidcc.Plug.Authorize do
 
     state = Map.get(params, "state", :undefined)
     nonce = 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
-    pkce_verifier = 60 |> :crypto.strong_rand_bytes() |> Base.encode32(padding: false) |> Base.encode64(padding: false)
+    pkce_verifier = 96 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
 
     %{address: peer_ip} = get_peer_data(conn)
 
