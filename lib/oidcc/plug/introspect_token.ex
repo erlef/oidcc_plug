@@ -82,7 +82,7 @@ defmodule Oidcc.Plug.IntrospectToken do
         :client_id,
         :client_secret,
         token_introspection_opts: %{},
-        send_inactive_token_response: &send_inactive_token_response/2,
+        send_inactive_token_response: &__MODULE__.send_inactive_token_response/2,
         cache: Oidcc.Plug.Cache.Noop
       ])
 
@@ -141,11 +141,12 @@ defmodule Oidcc.Plug.IntrospectToken do
     """
   end
 
+  @doc false
   @spec send_inactive_token_response(
           conn :: Plug.Conn.t(),
           introspection :: Oidcc.TokenIntrospection.t()
         ) :: Plug.Conn.t()
-  defp send_inactive_token_response(conn, _introspection) do
+  def send_inactive_token_response(conn, _introspection) do
     conn
     |> halt()
     |> send_resp(:unauthorized, "The provided token is inactive")

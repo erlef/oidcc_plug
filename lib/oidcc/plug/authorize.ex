@@ -99,7 +99,7 @@ defmodule Oidcc.Plug.Authorize do
     nonce = 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
     pkce_verifier =
       if access_type == :public,
-         do: 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false),
+         do: 96 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false),
          else: :none
 
     %{address: peer_ip} = get_peer_data(conn)
