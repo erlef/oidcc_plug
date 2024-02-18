@@ -92,6 +92,8 @@ end
 
 ## Usage
 
+### Setup
+
 ```elixir
 defmodule SampleApp.Application do
   # ...
@@ -118,7 +120,58 @@ defmodule SampleApp.Application do
 
   # ...
 end
+```
 
+### Authorization Flow
+
+```elixir
+defmodule SampleAppWeb.OidccController do
+  use SampleAppWeb, :controller
+
+  plug Oidcc.Plug.Authorize,
+    [
+      provider: TestWorks.OpenIdConfigurationProvider,
+      client_id: "client_id",
+      client_secret: "client_secret",
+      redirect_uri: &__MODULE__.callback_uri/0
+    ]
+    when action in [:authorize]
+
+  plug Oidcc.Plug.AuthorizationCallback,
+    [
+      provider: TestWorks.OpenIdConfigurationProvider,
+      client_id: "client_id",
+      client_secret: "client_secret",
+      redirect_uri: &__MODULE__.callback_uri/0
+    ]
+    when action in [:callback]
+
+  @doc false
+  def callback_uri, do: url(~p"/oidcc/callback")
+
+  def authorize(conn, _params), do: conn
+
+  def callback(%Plug.Conn{private: %{
+    Oidcc.Plug.AuthorizationCallback => {:ok, {_token, userinfo}}}
+  } = conn, params) do
+    conn
+    |> put_session("oidcc_claims", userinfo)
+    |> redirect(to: "/")
+  end
+
+  def callback(%Plug.Conn{private: %{
+    Oidcc.Plug.AuthorizationCallback => {:error, reason}
+  }} = conn, _params) do
+    conn
+    |> put_status(400)
+    |> render(:error, reason: reason)
+  end
+end
+```
+
+### API (Check access token header)
+
+```elixir
 defmodule SampleAppWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :sample_app
 
@@ -150,4 +203,3 @@ defmodule SampleAppWeb.Endpoint do
   plug SampleAppWeb.Router
 end
 ```
-
