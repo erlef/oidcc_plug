@@ -166,7 +166,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
            scopes = :oidcc_scope.parse(scope),
            token_opts =
              opts
-             |> Keyword.take([:request_opts,:preferred_auth_methods])
+             |> Keyword.take([:request_opts, :preferred_auth_methods])
              |> Map.new()
              |> Map.merge(%{
                nonce: nonce,
