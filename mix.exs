@@ -65,8 +65,8 @@ defmodule Oidcc.Plug.MixProject do
     [
       {:oidcc, "~> 3.0"},
       {:plug, "~> 1.14"},
-      {:ex_doc, "~> 0.29.4", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.17.1", only: :test, runtime: false},
+      {:ex_doc, "~> 0.29", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.18.1", only: :test, runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: :dev, runtime: false},
       {:mock, "~> 0.3.8", only: :test}

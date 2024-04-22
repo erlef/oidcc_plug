@@ -71,6 +71,8 @@ jobs:
             unstable: false
           - elixir: "1.15.7"
             unstable: false
+          - elixir: "1.16.2"
+            unstable: false
           - elixir: "main"
             unstable: true
 
