@@ -88,7 +88,7 @@ defmodule Oidcc.Plug.Authorize do
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
 
     state = Map.get(params, "state", :undefined)
-    nonce = 96 |> :crypto.strong_rand_bytes() |> Base.encode64(padding: false)
+    nonce = 31 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
     pkce_verifier = 96 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
 
     %{address: peer_ip} = get_peer_data(conn)
