@@ -63,7 +63,7 @@ defmodule Oidcc.Plug.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:oidcc, "~> 3.0"},
+      {:oidcc, "~> 3.2.0"},
       {:plug, "~> 1.14"},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18.1", only: :test, runtime: false},

@@ -20,12 +20,15 @@ defmodule Oidcc.Plug.Authorize do
 
   ## Query Params
 
-  * `state` - STate to relay to OpenID Provider. Commonly used for target redirect
+  * `state` - State to relay to OpenID Provider. Commonly used for target redirect
     URL after authorization.
   """
   @moduledoc since: "0.1.0"
 
   @behaviour Plug
+
+  alias Oidcc.Authorization
+  alias Oidcc.ClientContext
 
   import Plug.Conn,
     only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_peer_data: 1, get_req_header: 2]
@@ -57,6 +60,8 @@ defmodule Oidcc.Plug.Authorize do
   * `provider` - name of the `Oidcc.ProviderConfiguration.Worker`
   * `client_id` - OAuth Client ID to use for the introspection
   * `client_secret` - OAuth Client Secret to use for the introspection
+  * `client_context_opts` - Options for Client Context Initialization
+  * `client_profile_opts` - Options for Client Context Profiles
   """
   @typedoc since: "0.1.0"
   @type opts :: [
@@ -65,7 +70,9 @@ defmodule Oidcc.Plug.Authorize do
           url_extension: :oidcc_http_util.query_params(),
           provider: GenServer.name(),
           client_id: String.t() | (-> String.t()),
-          client_secret: String.t() | (-> String.t())
+          client_secret: String.t() | (-> String.t()),
+          client_context_opts: :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()),
+          client_profile_opts: :oidcc_profile.opts()
         ]
 
   @impl Plug
@@ -76,6 +83,8 @@ defmodule Oidcc.Plug.Authorize do
         :client_id,
         :client_secret,
         :redirect_uri,
+        :client_context_opts,
+        :client_profile_opts,
         url_extension: [],
         scopes: ["openid"]
       ])
@@ -86,8 +95,12 @@ defmodule Oidcc.Plug.Authorize do
     client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
     client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
+    client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
+    client_profile_opts = opts |> Keyword.get(:client_profile_opts, %{profiles: []})
 
     state = Map.get(params, "state", :undefined)
+    state_verifier = :erlang.phash2(state)
+
     nonce = 31 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
     pkce_verifier = 96 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
 
@@ -106,22 +119,38 @@ defmodule Oidcc.Plug.Authorize do
       )
       |> Map.new()
 
-    case Oidcc.create_redirect_url(provider, client_id, client_secret, authorization_opts) do
-      {:ok, redirect_uri} ->
-        conn
-        |> put_session(get_session_name(), %{
-          nonce: nonce,
-          peer_ip: peer_ip,
-          useragent: useragent,
-          pkce_verifier: pkce_verifier
-        })
-        |> put_resp_header("location", IO.iodata_to_binary(redirect_uri))
-        |> send_resp(302, "")
-
+    with {:ok, client_context} <-
+           ClientContext.from_configuration_worker(
+             provider,
+             client_id,
+             client_secret,
+             client_context_opts
+           ),
+         {:ok, client_context, profile_opts} <-
+           apply_profile(client_context, client_profile_opts),
+         {:ok, redirect_uri} <-
+           Authorization.create_redirect_url(
+             client_context,
+             Map.merge(profile_opts, authorization_opts)
+           ) do
+      conn
+      |> put_session(get_session_name(), %{
+        nonce: nonce,
+        peer_ip: peer_ip,
+        useragent: useragent,
+        pkce_verifier: pkce_verifier,
+        state_verifier: state_verifier
+      })
+      |> put_resp_header("location", IO.iodata_to_binary(redirect_uri))
+      |> send_resp(302, "")
+    else
       {:error, reason} ->
         raise Error, reason: reason
     end
   end
+
+  defp apply_profile(client_context, profile_opts),
+    do: ClientContext.apply_profiles(client_context, profile_opts)
 
   @doc false
   @spec get_session_name :: String.t()
