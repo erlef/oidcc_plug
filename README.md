@@ -200,6 +200,12 @@ defmodule SampleAppWeb.Endpoint do
     client_id: @client_id,
     client_secret: @client_secret
 
+  # OR: Require a valid JWT Token
+  plug Oidcc.Plug.RequireAuthorization,
+    provider: SampleApp.GoogleOpenIdConfigurationProvider,
+    client_id: @client_id,
+    client_secret: @client_secret
+
   plug SampleAppWeb.Router
 end
 ```
