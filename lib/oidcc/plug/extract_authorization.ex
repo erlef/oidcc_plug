@@ -3,7 +3,7 @@ defmodule Oidcc.Plug.ExtractAuthorization do
   Extract `authorization` request header
 
   This module should be used together with `Oidcc.Plug.IntrospectToken`,
-  `Oidcc.Plug.LoadUserinfo` or `Oidcc.Plug.ValidateJwtToken` or `Oidcc.Plug.RequireAuthorization`.
+  `Oidcc.Plug.LoadUserinfo` or `Oidcc.Plug.ValidateJwtToken`.
 
   ```elixir
   defmodule SampleAppWeb.Endpoint do
@@ -13,10 +13,10 @@ defmodule Oidcc.Plug.ExtractAuthorization do
 
     plug Oidcc.Plug.ExtractAuthorization
 
+    plug Oidcc.Plug.RequireAuthorization, [...] # Ensure Authorization Token provided
     plug Oidcc.Plug.IntrospectToken, [...] # Check Token via Introspection
     plug Oidcc.Plug.LoadUserinfo, [...] # Check Token via Userinfo
     plug Oidcc.Plug.ValidateJwtToken, [...] # Check Token via JWT validation
-    plug Oidcc.Plug.RequireAuthorization, [...] # Require valid JWT Token
 
     plug SampleAppWeb.Router
   end
