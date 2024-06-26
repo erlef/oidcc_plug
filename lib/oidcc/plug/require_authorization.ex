@@ -54,7 +54,7 @@ defmodule Oidcc.Plug.RequireAuthorization do
     send_missing_token_response.(conn)
   end
 
-  def call(%Plug.Conn{private: %{ExtractAuthorization => access_token}} = conn, opts), do: conn
+  def call(%Plug.Conn{private: %{ExtractAuthorization => _access_token}} = conn, _opts), do: conn
 
   def call(%Plug.Conn{} = _conn, _opts) do
     raise """
@@ -67,7 +67,7 @@ defmodule Oidcc.Plug.RequireAuthorization do
   def send_missing_token_response(conn) do
     conn
     |> halt()
-    |> put_resp_header("WWW-Authenticate", "Bearer")
+    |> put_resp_header("www-authenticate", "Bearer")
     |> send_resp(:unauthorized, "The authorization token is required")
   end
 end
