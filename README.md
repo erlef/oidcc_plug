@@ -182,6 +182,9 @@ defmodule SampleAppWeb.Endpoint do
   @client_id Application.compile_env!(:sample_app, [:openid_credentials, :client_id])
   @client_secret Application.compile_env!(:sample_app, [:openid_credentials, :client_secret])
 
+  # Ensure Authorization Token provided
+  plug Oidcc.Plug.RequireAuthorization
+
   # Check Token via Introspection
   plug Oidcc.Plug.IntrospectToken,
     provider: SampleApp.GoogleOpenIdConfigurationProvider,
@@ -196,12 +199,6 @@ defmodule SampleAppWeb.Endpoint do
 
   # OR: Check Token via JWT validation
   plug Oidcc.Plug.ValidateJwtToken,
-    provider: SampleApp.GoogleOpenIdConfigurationProvider,
-    client_id: @client_id,
-    client_secret: @client_secret
-
-  # OR: Require a valid JWT Token
-  plug Oidcc.Plug.RequireAuthorization,
     provider: SampleApp.GoogleOpenIdConfigurationProvider,
     client_id: @client_id,
     client_secret: @client_secret
