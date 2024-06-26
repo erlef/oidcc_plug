@@ -182,6 +182,9 @@ defmodule SampleAppWeb.Endpoint do
   @client_id Application.compile_env!(:sample_app, [:openid_credentials, :client_id])
   @client_secret Application.compile_env!(:sample_app, [:openid_credentials, :client_secret])
 
+  # Ensure Authorization Token provided
+  plug Oidcc.Plug.RequireAuthorization
+
   # Check Token via Introspection
   plug Oidcc.Plug.IntrospectToken,
     provider: SampleApp.GoogleOpenIdConfigurationProvider,

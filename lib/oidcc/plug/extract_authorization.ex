@@ -13,6 +13,7 @@ defmodule Oidcc.Plug.ExtractAuthorization do
 
     plug Oidcc.Plug.ExtractAuthorization
 
+    plug Oidcc.Plug.RequireAuthorization, [...] # Ensure Authorization Token provided
     plug Oidcc.Plug.IntrospectToken, [...] # Check Token via Introspection
     plug Oidcc.Plug.LoadUserinfo, [...] # Check Token via Userinfo
     plug Oidcc.Plug.ValidateJwtToken, [...] # Check Token via JWT validation
