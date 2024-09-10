@@ -130,6 +130,7 @@ defmodule Oidcc.Plug.IntrospectToken do
             |> send_inactive_token_response.(introspection)
 
           {:error, reason} ->
+            dbg reason
             raise Error, reason: reason
         end
     end
