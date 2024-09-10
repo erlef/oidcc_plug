@@ -94,6 +94,7 @@ defmodule Oidcc.Plug.ValidateJwtToken do
         |> send_inactive_token_response.()
 
       {:error, reason} ->
+        dbg reason
         raise Error, reason: reason
     end
   end
