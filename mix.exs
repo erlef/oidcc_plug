@@ -23,6 +23,9 @@ defmodule Oidcc.Plug.MixProject do
         "coveralls.html": :test,
         "coveralls.github": :test,
         "coveralls.multiple": :test
+      ],
+      dialyzer: [
+        plt_add_apps: [:mix]
       ]
     ]
   end
@@ -63,13 +66,16 @@ defmodule Oidcc.Plug.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:oidcc, "~> 3.2.0"},
+      {:oidcc, "~> 3.5"},
       {:plug, "~> 1.14"},
+      {:igniter, "~> 0.5.43", optional: true},
+      {:phoenix, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18.1", only: :test, runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: :dev, runtime: false},
-      {:mock, "~> 0.3.8", only: :test}
+      {:mock, "~> 0.3.8", only: :test},
+      {:phx_new, "~> 1.7", only: :test}
     ]
   end
 end
