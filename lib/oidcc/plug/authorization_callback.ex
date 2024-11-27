@@ -100,6 +100,9 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   * `client_id` - OAuth Client ID to use for the introspection
   * `client_secret` - OAuth Client Secret to use for the introspection
   * `client_context_opts` - Options for Client Context Initialization
+  * `client_context` - Client context retrieved manually using
+    `Oidcc.ClientContext.from_manual/4`. If provided, the options `provider`,
+    `client_id`, `client_secret` and `client_context_opts` are unused.
   * `client_profile_opts` - Options for Client Context Profiles
   * `redirect_uri` - Where to redirect for callback
   * `check_useragent` - check if useragent is the same as before the
@@ -116,6 +119,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
           client_secret: String.t() | (-> String.t()),
           client_context_opts: :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()),
           client_profile_opts: :oidcc_profile.opts(),
+          client_context: :oidcc_client_context.t(),
           redirect_uri: String.t() | (-> String.t()),
           check_useragent: boolean(),
           check_peer_ip: boolean(),
@@ -141,6 +145,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
         :client_secret,
         :client_context_opts,
         :client_profile_opts,
+        :client_context,
         :redirect_uri,
         :preferred_auth_methods,
         check_useragent: true,
@@ -151,11 +156,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
   @impl Plug
   def call(%Plug.Conn{params: params, body_params: body_params} = conn, opts) do
-    provider = Keyword.fetch!(opts, :provider)
-    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
-    client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
     client_profile_opts = opts |> Keyword.get(:client_profile_opts, %{profiles: []})
 
     params = Map.merge(params, body_params)
@@ -187,12 +188,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
     result =
       with {:ok, client_context} <-
-             ClientContext.from_configuration_worker(
-               provider,
-               client_id,
-               client_secret,
-               client_context_opts
-             ),
+             get_client_context(opts),
            {:ok, client_context, profile_opts} <-
              apply_profile(client_context, client_profile_opts),
            :ok <- check_peer_ip(conn, peer_ip, check_peer_ip?),
@@ -335,4 +331,22 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
   defp apply_profile(client_context, profile_opts),
     do: ClientContext.apply_profiles(client_context, profile_opts)
+
+  defp get_client_context(opts) do
+    if client_context = Keyword.get(opts, :client_context) do
+      {:ok, client_context}
+    else
+      provider = Keyword.fetch!(opts, :provider)
+      client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
+      client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
+      client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
+
+      ClientContext.from_configuration_worker(
+        provider,
+        client_id,
+        client_secret,
+        client_context_opts
+      )
+    end
+  end
 end

@@ -68,6 +68,39 @@ defmodule Oidcc.Plug.AuthorizeTest do
       assert ["http://example.com"] = get_resp_header(conn, "location")
     end
 
+    test_with_mock "successful redirect with provided client context",
+                   %{},
+                   Oidcc.Authorization,
+                   [],
+                   create_redirect_url: fn _client_context,
+                                           %{
+                                             redirect_uri: "http://localhost:8080/oidc/return",
+                                             nonce: _nonce
+                                           } ->
+                     {:ok, "http://example.com"}
+                   end do
+      {:ok, client_context} =
+        ClientContext.from_configuration_worker(ProviderName, "client_id", "client_secret", [])
+
+      opts =
+        Authorize.init(
+          client_context: client_context,
+          redirect_uri: "http://localhost:8080/oidc/return"
+        )
+
+      assert %{
+               halted: false,
+               status: 302
+             } =
+               conn =
+               "get"
+               |> conn("/", "")
+               |> Plug.Test.init_test_session(%{})
+               |> Authorize.call(opts)
+
+      assert ["http://example.com"] = get_resp_header(conn, "location")
+    end
+
     test_with_mock "error handling", %{}, Oidcc.Authorization, [],
       create_redirect_url: fn _client_context,
                               %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->

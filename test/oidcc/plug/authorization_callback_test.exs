@@ -86,6 +86,50 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
       end
     end
 
+    test "successful retrieve with provided client_context" do
+      with_mocks [
+        {Oidcc.Token, [],
+         retrieve: fn "code",
+                      _client_context,
+                      %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+           {:ok, :token}
+         end},
+        {Oidcc.Userinfo, [],
+         retrieve: fn :token, _client_context, %{} ->
+           {:ok, %{"sub" => "sub"}}
+         end}
+      ] do
+        {:ok, client_context} =
+          ClientContext.from_configuration_worker(ProviderName, "client_id", "client_secret", [])
+
+        opts =
+          AuthorizationCallback.init(
+            client_context: client_context,
+            redirect_uri: "http://localhost:8080/oidc/return"
+          )
+
+        assert %{
+                 halted: false,
+                 private: %{
+                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                 }
+               } =
+                 "get"
+                 |> conn("/", %{"code" => "code"})
+                 |> Plug.Test.init_test_session(%{
+                   Authorize.get_session_name() => %{
+                     nonce: "nonce",
+                     peer_ip: {127, 0, 0, 1},
+                     useragent: "useragent",
+                     pkce_verifier: "pkce_verifier",
+                     state_verifier: 0
+                   }
+                 })
+                 |> put_req_header("user-agent", "useragent")
+                 |> AuthorizationCallback.call(opts)
+      end
+    end
+
     test_with_mock "successful retrieve without userinfo", %{}, Oidcc.Token, [],
       retrieve: fn "code",
                    _client_context,
