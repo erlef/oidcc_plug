@@ -201,17 +201,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
            :ok <- check_issuer_request_param(params, client_context),
            {:ok, code} <- fetch_request_param(params, "code"),
            scope = Map.get(params, "scope", "openid"),
-           scopes = :oidcc_scope.parse(scope),
-           token_opts =
-             opts
-             |> Keyword.take([:request_opts, :preferred_auth_methods])
-             |> Map.new()
-             |> Map.merge(%{
-               nonce: nonce,
-               scope: scopes,
-               redirect_uri: redirect_uri,
-               pkce_verifier: pkce_verifier
-             }),
+           token_opts = prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier),
            {:ok, token} <-
              retrieve_token(
                code,
@@ -227,6 +217,31 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     conn
     |> delete_session(Authorize.get_session_name())
     |> put_private(__MODULE__, result)
+  end
+
+  @spec prepare_retrieve_opts(
+          opts :: opts(),
+          scope :: String.t(),
+          nonce :: String.t() | :any,
+          redirect_uri :: String.t(),
+          pkce_verifier :: String.t() | :none
+        ) :: :oidcc_token.retrieve_opts()
+  defp prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier) do
+    scopes = :oidcc_scope.parse(scope)
+
+    opts
+    |> Keyword.take([:request_opts, :preferred_auth_methods])
+    |> Map.new()
+    |> Map.merge(%{
+      nonce: nonce,
+      scope: scopes,
+      redirect_uri: redirect_uri,
+      pkce_verifier: pkce_verifier
+    })
+    |> case do
+      %{pkce_verifier: :none} = opts -> Map.drop(opts, [:pkce_verifier])
+      opts -> opts
+    end
   end
 
   @spec check_peer_ip(

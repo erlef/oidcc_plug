@@ -434,4 +434,40 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
              |> put_req_header("user-agent", "useragent")
              |> AuthorizationCallback.call(opts)
   end
+
+  test "no session" do
+    with_mocks [
+      {Oidcc.Token, [],
+       retrieve: fn
+         "code", _client_context, opts ->
+           refute Map.has_key?(opts, :pkce_verifier)
+           {:ok, :token}
+           {:ok, :token}
+       end},
+      {Oidcc.Userinfo, [],
+       retrieve: fn :token, _client_context, %{} ->
+         {:ok, %{"sub" => "sub"}}
+       end}
+    ] do
+      opts =
+        AuthorizationCallback.init(
+          provider: ProviderName,
+          client_id: "client_id",
+          client_secret: "client_secret",
+          redirect_uri: "http://localhost:8080/oidc/return"
+        )
+
+      assert %{
+               halted: false,
+               private: %{
+                 Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+               }
+             } =
+               "get"
+               |> conn("/", %{"code" => "code"})
+               |> Plug.Test.init_test_session(%{})
+               |> put_req_header("user-agent", "useragent")
+               |> AuthorizationCallback.call(opts)
+    end
+  end
 end
