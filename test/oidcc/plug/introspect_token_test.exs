@@ -190,6 +190,8 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
     end
   end
 
+  # Broken because of https://github.com/zitadel/zitadel/issues/8590
+  @tag :skip
   test "integration test" do
     pid =
       start_link_supervised!(
