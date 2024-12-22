@@ -69,9 +69,13 @@ jobs:
         include:
           - elixir: "1.15.0"
             unstable: false
-          - elixir: "1.15.7"
+          - elixir: "1.15.8"
             unstable: false
-          - elixir: "1.16.2"
+          - elixir: "1.16.3"
+            unstable: false
+          - elixir: "1.17.3"
+            unstable: false
+          - elixir: "1.18.0"
             unstable: false
           - elixir: "main"
             unstable: true
