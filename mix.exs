@@ -56,7 +56,7 @@ defmodule Oidcc.Plug.MixProject do
       source_ref: ref,
       extras: ["README.md"],
       logo: "assets/logo.svg",
-      assets: "assets"
+      assets: %{"assets" => "assets"}
     ]
   end
 
