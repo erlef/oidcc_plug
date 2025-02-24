@@ -201,7 +201,8 @@ defmodule Oidcc.Plug.AuthorizationCallback do
            :ok <- check_issuer_request_param(params, client_context),
            {:ok, code} <- fetch_request_param(params, "code"),
            scope = Map.get(params, "scope", "openid"),
-           token_opts = prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier),
+           token_opts =
+             prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier, provider),
            {:ok, token} <-
              retrieve_token(
                code,
@@ -224,9 +225,10 @@ defmodule Oidcc.Plug.AuthorizationCallback do
           scope :: String.t(),
           nonce :: String.t() | :any,
           redirect_uri :: String.t(),
-          pkce_verifier :: String.t() | :none
+          pkce_verifier :: String.t() | :none,
+          provider :: GenServer.name()
         ) :: :oidcc_token.retrieve_opts()
-  defp prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier) do
+  defp prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier, provider) do
     scopes = :oidcc_scope.parse(scope)
 
     opts
@@ -236,7 +238,8 @@ defmodule Oidcc.Plug.AuthorizationCallback do
       nonce: nonce,
       scope: scopes,
       redirect_uri: redirect_uri,
-      pkce_verifier: pkce_verifier
+      pkce_verifier: pkce_verifier,
+      refresh_jwks: :oidcc_jwt_util.refresh_jwks_fun(provider)
     })
     |> case do
       %{pkce_verifier: :none} = opts -> Map.drop(opts, [:pkce_verifier])

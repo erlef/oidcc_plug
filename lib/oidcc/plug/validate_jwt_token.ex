@@ -83,9 +83,12 @@ defmodule Oidcc.Plug.ValidateJwtToken do
 
     send_inactive_token_response = Keyword.fetch!(opts, :send_inactive_token_response)
 
+    validate_opts = %{nonce: :any, refresh_jwks: :oidcc_jwt_util.refresh_jwks_fun(provider)}
+
     with {:ok, client_context} <-
            Oidcc.ClientContext.from_configuration_worker(provider, client_id, client_secret),
-         {:ok, claims} <- Oidcc.Token.validate_id_token(access_token, client_context, :any) do
+         {:ok, claims} <-
+           Oidcc.Token.validate_id_token(access_token, client_context, validate_opts) do
       put_private(conn, __MODULE__, claims)
     else
       {:error, :token_expired} ->

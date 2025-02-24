@@ -17,7 +17,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, :any ->
+         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
            {:ok, %{"sub" => "sub"}}
          end}
       ] do
@@ -76,7 +76,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, :any ->
+         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
            {:error, :reason}
          end}
       ] do
@@ -103,7 +103,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, :any ->
+         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
            {:error, :token_expired}
          end}
       ] do
@@ -134,7 +134,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, :any ->
+         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
            {:error, :token_expired}
          end}
       ] do

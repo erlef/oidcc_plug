@@ -48,7 +48,11 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         {Oidcc.Token, [],
          retrieve: fn "code",
                       _client_context,
-                      %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+                      %{
+                        redirect_uri: "http://localhost:8080/oidc/return",
+                        nonce: _nonce,
+                        refresh_jwks: _refresh_fun
+                      } ->
            {:ok, :token}
          end},
         {Oidcc.Userinfo, [],
