@@ -1,8 +1,9 @@
 defmodule Oidcc.Plug.ValidateJwtTokenTest do
   use ExUnit.Case, async: false
-  use Plug.Test
 
   import Mock
+  import Plug.Test
+  import Plug.Conn
 
   alias Oidcc.Plug.ExtractAuthorization
   alias Oidcc.Plug.ValidateJwtToken
