@@ -1,8 +1,9 @@
 defmodule Oidcc.Plug.AuthorizationCallbackTest do
   use ExUnit.Case, async: false
-  use Plug.Test
 
   import Mock
+  import Plug.Test
+  import Plug.Conn
 
   alias Oidcc.ClientContext
   alias Oidcc.Plug.AuthorizationCallback
@@ -42,7 +43,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
     :ok
   end
 
-  describe inspect(&Authorize.call/2) do
+  describe inspect(&AuthorizationCallback.call/2) do
     test "successful retrieve" do
       with_mocks [
         {Oidcc.Token, [],
@@ -178,6 +179,55 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                })
                |> put_req_header("user-agent", "useragent")
                |> AuthorizationCallback.call(opts)
+    end
+
+    test "peer_ip match on remote_ip only" do
+      with_mocks [
+        {Oidcc.Token, [],
+         retrieve: fn "code",
+                      _client_context,
+                      %{
+                        redirect_uri: "http://localhost:8080/oidc/return",
+                        nonce: _nonce,
+                        refresh_jwks: _refresh_fun
+                      } ->
+           {:ok, :token}
+         end}
+      ] do
+        opts =
+          AuthorizationCallback.init(
+            provider: ProviderName,
+            client_id: fn -> "client_id" end,
+            client_secret: "client_secret",
+            redirect_uri: "http://localhost:8080/oidc/return",
+            retrieve_userinfo: false
+          )
+
+        conn =
+          "get"
+          |> conn("/", %{"code" => "code"})
+          |> put_req_header("x-forwarded-for", "10.0.0.1")
+          |> Plug.RewriteOn.call(Plug.RewriteOn.init([:x_forwarded_for]))
+
+        assert %{
+                 halted: false,
+                 private: %{
+                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, nil}}
+                 }
+               } =
+                 conn
+                 |> Plug.Test.init_test_session(%{
+                   Authorize.get_session_name() => %{
+                     nonce: "nonce",
+                     peer_ip: {10, 0, 0, 1},
+                     useragent: "useragent",
+                     pkce_verifier: "pkce_verifier",
+                     state_verifier: 0
+                   }
+                 })
+                 |> put_req_header("user-agent", "useragent")
+                 |> AuthorizationCallback.call(opts)
+      end
     end
 
     test "allows mismatch if disabled" do

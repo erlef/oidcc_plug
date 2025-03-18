@@ -31,7 +31,7 @@ defmodule Oidcc.Plug.Authorize do
   alias Oidcc.ClientContext
 
   import Plug.Conn,
-    only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_peer_data: 1, get_req_header: 2]
+    only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_req_header: 2]
 
   import Oidcc.Plug.Config, only: [evaluate_config: 1]
 
@@ -104,8 +104,7 @@ defmodule Oidcc.Plug.Authorize do
     nonce = 31 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
     pkce_verifier = 96 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
 
-    %{address: peer_ip} = get_peer_data(conn)
-
+    peer_ip = conn.remote_ip
     useragent = conn |> get_req_header("User-Agent") |> List.first()
 
     authorization_opts =

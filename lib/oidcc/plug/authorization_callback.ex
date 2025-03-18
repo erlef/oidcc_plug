@@ -87,7 +87,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   alias Oidcc.Userinfo
 
   import Plug.Conn,
-    only: [get_session: 2, delete_session: 2, put_private: 3, get_peer_data: 1, get_req_header: 2]
+    only: [get_session: 2, delete_session: 2, put_private: 3, get_req_header: 2]
 
   import Oidcc.Plug.Config, only: [evaluate_config: 1]
 
@@ -255,13 +255,8 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   defp check_peer_ip(conn, peer_ip, check_peer_ip?)
   defp check_peer_ip(_conn, _peer_ip, false), do: :ok
   defp check_peer_ip(_conn, nil, true), do: :ok
-
-  defp check_peer_ip(%Plug.Conn{} = conn, peer_ip, true) do
-    case get_peer_data(conn) do
-      %{address: ^peer_ip} -> :ok
-      %{} -> {:error, :peer_ip_mismatch}
-    end
-  end
+  defp check_peer_ip(%Plug.Conn{remote_ip: peer_ip}, peer_ip, true), do: :ok
+  defp check_peer_ip(%Plug.Conn{}, _peer_ip, true), do: {:error, :peer_ip_mismatch}
 
   @spec check_useragent(
           conn :: Plug.Conn.t(),
