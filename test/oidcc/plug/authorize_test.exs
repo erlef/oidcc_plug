@@ -90,4 +90,89 @@ defmodule Oidcc.Plug.AuthorizeTest do
       end
     end
   end
+
+  describe "client_store" do
+    defmodule TestClientStore do
+      @behaviour Oidcc.Plug.ClientStore
+
+      @impl true
+      def get_client_context(_conn) do
+        {:ok, provider_configuration} =
+          ProviderConfiguration.decode_configuration(%{
+            "issuer" => "https://example.com",
+            "authorization_endpoint" => "https://example.com/auth",
+            "jwks_uri" => "https://example.com/jwks",
+            "scopes_supported" => ["openid"],
+            "response_types_supported" => ["code"],
+            "subject_types_supported" => ["public"],
+            "id_token_signing_alg_values_supported" => ["RS256"]
+          })
+
+        jwks = JOSE.JWK.generate_key({:oct, 64})
+
+        {:ok,
+         ClientContext.from_manual(
+           provider_configuration,
+           jwks,
+           "test_client_id",
+           "test_client_secret",
+           %{}
+         )}
+      end
+
+      @impl true
+      def refresh_jwks(_context) do
+        jwks = JOSE.JWK.generate_key({:oct, 64})
+        {:ok, jwks}
+      end
+    end
+
+    test_with_mock "successful redirect with client_store", %{}, Oidcc.Authorization, [],
+      create_redirect_url: fn _client_context,
+                              %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+        {:ok, "http://example.com"}
+      end do
+      opts =
+        Authorize.init(
+          client_store: TestClientStore,
+          redirect_uri: "http://localhost:8080/oidc/return"
+        )
+
+      assert %{
+               halted: false,
+               status: 302
+             } =
+               conn =
+               "get"
+               |> conn("/", "")
+               |> Plug.Test.init_test_session(%{})
+               |> Authorize.call(opts)
+
+      assert ["http://example.com"] = get_resp_header(conn, "location")
+    end
+
+    defmodule ErrorClientStore do
+      @behaviour Oidcc.Plug.ClientStore
+
+      @impl true
+      def get_client_context(_conn) do
+        {:error, :client_context_not_found}
+      end
+    end
+
+    test "handles client_store error" do
+      opts =
+        Authorize.init(
+          client_store: ErrorClientStore,
+          redirect_uri: "http://localhost:8080/oidc/return"
+        )
+
+      assert_raise Authorize.Error, fn ->
+        "get"
+        |> conn("/", "")
+        |> Plug.Test.init_test_session(%{})
+        |> Authorize.call(opts)
+      end
+    end
+  end
 end

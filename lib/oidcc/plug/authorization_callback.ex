@@ -108,12 +108,17 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     authorization request
   * `retrieve_userinfo` - whether to load userinfo from the provider
   * `request_opts` - request opts for http calls to provider
+  * `client_store` - A module name that implements the `Oidcc.Plug.ClientStore` behaviour
+  to fetch the client context from a store instead of using the `provider`, `client_id` and `client_secret`
+  directly. This is useful for storing the client context in a database or other persistent
+  storage.
   """
   @typedoc since: "0.1.0"
   @type opts() :: [
-          provider: GenServer.name(),
-          client_id: String.t() | (-> String.t()),
-          client_secret: String.t() | (-> String.t()),
+          provider: GenServer.name() | nil,
+          client_store: module() | nil,
+          client_id: String.t() | (-> String.t()) | nil,
+          client_secret: String.t() | (-> String.t()) | nil,
           client_context_opts: :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()),
           client_profile_opts: :oidcc_profile.opts(),
           redirect_uri: String.t() | (-> String.t()),
@@ -138,6 +143,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
       Keyword.validate!(opts, [
         :provider,
         :client_id,
+        :client_store,
         :client_secret,
         :client_context_opts,
         :client_profile_opts,
@@ -151,11 +157,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
   @impl Plug
   def call(%Plug.Conn{params: params, body_params: body_params} = conn, opts) do
-    provider = Keyword.fetch!(opts, :provider)
-    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
-    client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
     client_profile_opts = opts |> Keyword.get(:client_profile_opts, %{profiles: []})
 
     params = Map.merge(params, body_params)
@@ -187,12 +189,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
     result =
       with {:ok, client_context} <-
-             ClientContext.from_configuration_worker(
-               provider,
-               client_id,
-               client_secret,
-               client_context_opts
-             ),
+             get_client_context(conn, opts),
            {:ok, client_context, profile_opts} <-
              apply_profile(client_context, client_profile_opts),
            :ok <- check_peer_ip(conn, peer_ip, check_peer_ip?),
@@ -202,7 +199,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
            {:ok, code} <- fetch_request_param(params, "code"),
            scope = Map.get(params, "scope", "openid"),
            token_opts =
-             prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier, provider),
+             prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier),
            {:ok, token} <-
              retrieve_token(
                code,
@@ -220,16 +217,45 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     |> put_private(__MODULE__, result)
   end
 
+  defp get_client_context(conn, opts) do
+    if client_store = Keyword.get(opts, :client_store) do
+      client_store.get_client_context(conn)
+    else
+      provider = Keyword.fetch!(opts, :provider)
+
+      client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
+      client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
+
+      client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
+
+      ClientContext.from_configuration_worker(
+        provider,
+        client_id,
+        client_secret,
+        client_context_opts
+      )
+    end
+  end
+
   @spec prepare_retrieve_opts(
           opts :: opts(),
           scope :: String.t(),
           nonce :: String.t() | :any,
           redirect_uri :: String.t(),
-          pkce_verifier :: String.t() | :none,
-          provider :: GenServer.name()
+          pkce_verifier :: String.t() | :none
         ) :: :oidcc_token.retrieve_opts()
-  defp prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier, provider) do
+  defp prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier) do
     scopes = :oidcc_scope.parse(scope)
+
+    refresh_jwks =
+      if client_store = Keyword.get(opts, :client_store) do
+        if function_exported?(client_store, :refresh_jwks, 1),
+          do: &client_store.refresh_jwks/1,
+          else: nil
+      else
+        provider = Keyword.fetch!(opts, :provider)
+        :oidcc_jwt_util.refresh_jwks_fun(provider)
+      end
 
     opts
     |> Keyword.take([:request_opts, :preferred_auth_methods])
@@ -239,7 +265,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
       scope: scopes,
       redirect_uri: redirect_uri,
       pkce_verifier: pkce_verifier,
-      refresh_jwks: :oidcc_jwt_util.refresh_jwks_fun(provider)
+      refresh_jwks: refresh_jwks
     })
     |> case do
       %{pkce_verifier: :none} = opts -> Map.drop(opts, [:pkce_verifier])
