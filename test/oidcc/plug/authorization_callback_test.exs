@@ -524,4 +524,86 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                |> AuthorizationCallback.call(opts)
     end
   end
+
+  describe "client_store" do
+    defmodule TestClientStore do
+      @behaviour Oidcc.Plug.ClientStore
+
+      @impl true
+      def get_client_context(_conn) do
+        {:ok, provider_configuration} =
+          ProviderConfiguration.decode_configuration(%{
+            "issuer" => "https://example.com",
+            "authorization_endpoint" => "https://example.com/auth",
+            "jwks_uri" => "https://example.com/jwks",
+            "scopes_supported" => ["openid"],
+            "response_types_supported" => ["code"],
+            "subject_types_supported" => ["public"],
+            "id_token_signing_alg_values_supported" => ["RS256"]
+          })
+
+        jwks = JOSE.JWK.generate_key({:oct, 64})
+
+        {:ok,
+         ClientContext.from_manual(
+           provider_configuration,
+           jwks,
+           "test_client_id",
+           "test_client_secret",
+           %{}
+         )}
+      end
+
+      @impl true
+      def refresh_jwks(_context) do
+        jwks = JOSE.JWK.generate_key({:oct, 64})
+        {:ok, jwks}
+      end
+    end
+
+    test "retrieves token with client_store" do
+      with_mocks [
+        {Oidcc.Token, [],
+         retrieve: fn "code",
+                      _client_context,
+                      %{
+                        redirect_uri: "http://localhost:8080/oidc/return",
+                        nonce: _nonce,
+                        refresh_jwks: _refresh_fun
+                      } ->
+           {:ok, :token}
+         end},
+        {Oidcc.Userinfo, [],
+         retrieve: fn :token, _client_context, %{} ->
+           {:ok, %{"sub" => "sub"}}
+         end}
+      ] do
+        opts =
+          AuthorizationCallback.init(
+            client_store: TestClientStore,
+            redirect_uri: "http://localhost:8080/oidc/return"
+          )
+
+        assert %{
+                 halted: false,
+                 private: %{
+                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                 }
+               } =
+                 "get"
+                 |> conn("/", %{"code" => "code"})
+                 |> Plug.Test.init_test_session(%{
+                   Authorize.get_session_name() => %{
+                     nonce: "nonce",
+                     peer_ip: {127, 0, 0, 1},
+                     useragent: "useragent",
+                     pkce_verifier: "pkce_verifier",
+                     state_verifier: 0
+                   }
+                 })
+                 |> put_req_header("user-agent", "useragent")
+                 |> AuthorizationCallback.call(opts)
+      end
+    end
+  end
 end
