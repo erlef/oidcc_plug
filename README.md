@@ -90,6 +90,28 @@ def deps do
 end
 ```
 
+You can use [`igniter`](https://hex.pm/packages/igniter) to generate a basic
+setup for phoenix:
+
+```bash
+# If you haven't created your phoenix project yet
+# See: https://hexdocs.pm/igniter/readme.html#creating-a-new-mix-project-using-igniter
+mix igniter.new test \
+  --install phoenix,oidcc,oidcc_plug \
+  --with phx.new
+  
+# Add Igniter Phoenix Extension
+mix igniter.add_extension phoenix
+
+# Generate Provider, Controller, Router & Config
+mix oidcc.gen.controller \
+    --name MyApp.AuthController \
+    --provider MyApp.OpenIDProvider \
+    --base-url /auth \
+    --issuer https://account.google.com \
+    --client-id client-id
+```
+
 ## Usage
 
 ### Setup
