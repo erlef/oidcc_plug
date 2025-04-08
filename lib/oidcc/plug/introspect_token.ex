@@ -32,9 +32,9 @@ defmodule Oidcc.Plug.IntrospectToken do
 
   import Plug.Conn, only: [put_private: 3, halt: 1, send_resp: 3]
 
-  import Oidcc.Plug.Config, only: [evaluate_config: 1]
-
   alias Oidcc.Plug.ExtractAuthorization
+  alias Oidcc.Plug.Utils
+  alias Oidcc.TokenIntrospection
 
   @typedoc """
   Plug Configuration Options
@@ -47,6 +47,10 @@ defmodule Oidcc.Plug.IntrospectToken do
   * `token_introspection_opts` - Options to pass to the introspection
   * `send_inactive_token_response` - Customize Error Response for inactive token
   * `cache` - Cache token introspection - See `Oidcc.Plug.Cache`
+  * `client_store` - A module name that implements the `Oidcc.Plug.ClientStore` behaviour
+  to fetch the client context from a store instead of using the `provider`, `client_id` and `client_secret`
+  directly. This is useful for storing the client context in a database or other persistent
+  storage.
   """
   @typedoc since: "0.1.0"
   @type opts :: [
@@ -81,19 +85,17 @@ defmodule Oidcc.Plug.IntrospectToken do
         :provider,
         :client_id,
         :client_secret,
+        :client_store,
         token_introspection_opts: %{},
         send_inactive_token_response: &__MODULE__.send_inactive_token_response/2,
         cache: Oidcc.Plug.Cache.Noop
       ])
+      |> Utils.validate_client_context_opts!()
 
   @impl Plug
   def call(%Plug.Conn{private: %{ExtractAuthorization => nil}} = conn, _opts), do: conn
 
   def call(%Plug.Conn{private: %{ExtractAuthorization => access_token}} = conn, opts) do
-    provider = Keyword.fetch!(opts, :provider)
-    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
-
     token_introspection_opts = Keyword.fetch!(opts, :token_introspection_opts)
 
     send_inactive_token_response = Keyword.fetch!(opts, :send_inactive_token_response)
@@ -110,25 +112,23 @@ defmodule Oidcc.Plug.IntrospectToken do
         |> send_inactive_token_response.(introspection)
 
       :miss ->
-        case Oidcc.introspect_token(
-               access_token,
-               provider,
-               client_id,
-               client_secret,
-               token_introspection_opts
-             ) do
-          {:ok, %Oidcc.TokenIntrospection{active: true} = introspection} ->
-            :ok = cache.put(:introspection, access_token, introspection, conn)
+        with {:ok, client_context} <- Utils.get_client_context(conn, opts),
+             {:ok, %TokenIntrospection{} = token_introspection} <-
+               TokenIntrospection.introspect(
+                 access_token,
+                 client_context,
+                 token_introspection_opts
+               ) do
+          :ok = cache.put(:introspection, access_token, token_introspection, conn)
 
-            put_private(conn, __MODULE__, introspection)
-
-          {:ok, %Oidcc.TokenIntrospection{active: false} = introspection} ->
-            :ok = cache.put(:introspection, access_token, introspection, conn)
-
+          if token_introspection.active do
+            put_private(conn, __MODULE__, token_introspection)
+          else
             conn
-            |> put_private(__MODULE__, introspection)
-            |> send_inactive_token_response.(introspection)
-
+            |> put_private(__MODULE__, token_introspection)
+            |> send_inactive_token_response.(token_introspection)
+          end
+        else
           {:error, reason} ->
             raise Error, reason: reason
         end

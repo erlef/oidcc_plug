@@ -1,5 +1,6 @@
 defmodule Oidcc.Plug.Utils do
   import Oidcc.Plug.Config, only: [evaluate_config: 1]
+
   alias Oidcc.ClientContext
 
   def get_client_context(conn, opts) do
