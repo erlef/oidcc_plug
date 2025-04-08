@@ -82,10 +82,10 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
   alias Oidcc.ClientContext
   alias Oidcc.Plug.Authorize
+  alias Oidcc.Plug.Utils
   alias Oidcc.ProviderConfiguration
   alias Oidcc.Token
   alias Oidcc.Userinfo
-  alias Oidcc.Plug.Utils
 
   import Plug.Conn,
     only: [get_session: 2, delete_session: 2, put_private: 3, get_req_header: 2]
