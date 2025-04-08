@@ -72,6 +72,8 @@ defmodule Oidcc.Plug.UtilsTest do
 
     test "can get client context from client_store" do
       defmodule TestClientStore do
+        @behaviour Oidcc.Plug.ClientStore
+
         @impl true
         def get_client_context(_conn) do
           {:ok,
@@ -139,6 +141,8 @@ defmodule Oidcc.Plug.UtilsTest do
 
     test "returns nil when client_store doesn't implement refresh_jwks" do
       defmodule ClientStoreWithoutRefresh do
+        @behaviour Oidcc.Plug.ClientStore
+
         @impl true
         def get_client_context(_conn), do: {:ok, %{}}
       end
@@ -150,6 +154,8 @@ defmodule Oidcc.Plug.UtilsTest do
 
     test "returns client_store.refresh_jwks function when implemented" do
       defmodule ClientStoreWithRefresh do
+        @behaviour Oidcc.Plug.ClientStore
+
         @impl true
         def get_client_context(_conn), do: {:ok, %{}}
 
