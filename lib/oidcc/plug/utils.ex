@@ -5,6 +5,11 @@ defmodule Oidcc.Plug.Utils do
 
   alias Oidcc.ClientContext
 
+  @doc """
+  Returns a client context from either a client store or a configuration worker.
+  """
+  @spec get_client_context(Plug.Conn.t(), Keyword.t()) ::
+          {:ok, ClientContext.t()} | {:error, term()}
   def get_client_context(conn, opts) do
     if client_store = Keyword.get(opts, :client_store) do
       client_store.get_client_context(conn)
@@ -23,6 +28,11 @@ defmodule Oidcc.Plug.Utils do
     end
   end
 
+  @doc """
+  Returns a function to refresh the JWKS for a provider.
+  """
+  @spec get_refresh_jwks_fun(Keyword.t()) ::
+          :oidcc_jwt_util.refresh_jwks_for_unknown_kid_fun() | nil
   def get_refresh_jwks_fun(opts) do
     if client_store = Keyword.get(opts, :client_store) do
       if function_exported?(client_store, :refresh_jwks, 1),
@@ -34,6 +44,12 @@ defmodule Oidcc.Plug.Utils do
     end
   end
 
+  @doc """
+  Validates the client context options.
+
+  Raises an ArgumentError if the options are invalid.
+  """
+  @spec validate_client_context_opts!(Keyword.t()) :: Keyword.t()
   def validate_client_context_opts!(opts) do
     keys =
       Keyword.take(opts, [
