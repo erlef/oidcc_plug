@@ -85,6 +85,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   alias Oidcc.ProviderConfiguration
   alias Oidcc.Token
   alias Oidcc.Userinfo
+  alias Oidcc.Plug.Utils
 
   import Plug.Conn,
     only: [get_session: 2, delete_session: 2, put_private: 3, get_req_header: 2]
@@ -154,6 +155,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
         retrieve_userinfo: true,
         request_opts: %{}
       ])
+      |> Utils.validate_client_context_opts!()
 
   @impl Plug
   def call(%Plug.Conn{params: params, body_params: body_params} = conn, opts) do
@@ -189,7 +191,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
     result =
       with {:ok, client_context} <-
-             get_client_context(conn, opts),
+             Utils.get_client_context(conn, opts),
            {:ok, client_context, profile_opts} <-
              apply_profile(client_context, client_profile_opts),
            :ok <- check_peer_ip(conn, peer_ip, check_peer_ip?),
@@ -217,26 +219,6 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     |> put_private(__MODULE__, result)
   end
 
-  defp get_client_context(conn, opts) do
-    if client_store = Keyword.get(opts, :client_store) do
-      client_store.get_client_context(conn)
-    else
-      provider = Keyword.fetch!(opts, :provider)
-
-      client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-      client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
-
-      client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
-
-      ClientContext.from_configuration_worker(
-        provider,
-        client_id,
-        client_secret,
-        client_context_opts
-      )
-    end
-  end
-
   @spec prepare_retrieve_opts(
           opts :: opts(),
           scope :: String.t(),
@@ -247,15 +229,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   defp prepare_retrieve_opts(opts, scope, nonce, redirect_uri, pkce_verifier) do
     scopes = :oidcc_scope.parse(scope)
 
-    refresh_jwks =
-      if client_store = Keyword.get(opts, :client_store) do
-        if function_exported?(client_store, :refresh_jwks, 1),
-          do: &client_store.refresh_jwks/1,
-          else: nil
-      else
-        provider = Keyword.fetch!(opts, :provider)
-        :oidcc_jwt_util.refresh_jwks_fun(provider)
-      end
+    refresh_jwks = Utils.get_refresh_jwks_fun(opts)
 
     opts
     |> Keyword.take([:request_opts, :preferred_auth_methods])

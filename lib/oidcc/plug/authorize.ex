@@ -29,6 +29,7 @@ defmodule Oidcc.Plug.Authorize do
 
   alias Oidcc.Authorization
   alias Oidcc.ClientContext
+  alias Oidcc.Plug.Utils
 
   import Plug.Conn,
     only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_req_header: 2]
@@ -95,6 +96,7 @@ defmodule Oidcc.Plug.Authorize do
         url_extension: [],
         scopes: ["openid"]
       ])
+      |> Utils.validate_client_context_opts!()
 
   @impl Plug
   def call(%Plug.Conn{params: params} = conn, opts) do
@@ -121,7 +123,7 @@ defmodule Oidcc.Plug.Authorize do
       )
       |> Map.new()
 
-    with {:ok, client_context} <- get_client_context(conn, opts),
+    with {:ok, client_context} <- Utils.get_client_context(conn, opts),
          {:ok, client_context, profile_opts} <-
            apply_profile(client_context, client_profile_opts),
          {:ok, redirect_uri} <-
@@ -142,26 +144,6 @@ defmodule Oidcc.Plug.Authorize do
     else
       {:error, reason} ->
         raise Error, reason: reason
-    end
-  end
-
-  defp get_client_context(conn, opts) do
-    if client_store = Keyword.get(opts, :client_store) do
-      client_store.get_client_context(conn)
-    else
-      provider = Keyword.fetch!(opts, :provider)
-
-      client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-      client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
-
-      client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
-
-      ClientContext.from_configuration_worker(
-        provider,
-        client_id,
-        client_secret,
-        client_context_opts
-      )
     end
   end
 

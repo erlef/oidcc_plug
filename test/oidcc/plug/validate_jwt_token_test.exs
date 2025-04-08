@@ -14,7 +14,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
     test "validates token using jwt" do
       with_mocks [
         {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret" ->
+         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],
@@ -73,7 +73,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
     test "relays validation error" do
       with_mocks [
         {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret" ->
+         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],
@@ -100,7 +100,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
     test "sends error response with inactive token" do
       with_mocks [
         {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret" ->
+         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],
@@ -131,7 +131,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
     test "can customize inactive token response" do
       with_mocks [
         {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret" ->
+         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
            {:ok, :client_context}
          end},
         {Oidcc.Token, [],

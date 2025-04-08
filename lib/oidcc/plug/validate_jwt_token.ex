@@ -27,9 +27,8 @@ defmodule Oidcc.Plug.ValidateJwtToken do
 
   import Plug.Conn, only: [put_private: 3, halt: 1, send_resp: 3]
 
-  import Oidcc.Plug.Config, only: [evaluate_config: 1]
-
   alias Oidcc.Plug.ExtractAuthorization
+  alias Oidcc.Plug.Utils
 
   @typedoc """
   Plug Configuration Options
@@ -40,6 +39,10 @@ defmodule Oidcc.Plug.ValidateJwtToken do
   * `client_id` - OAuth Client ID to use for the token validation
   * `client_secret` - OAuth Client Secret to use for the token validation
   * `send_inactive_token_response` - Customize Error Response for inactive token
+  * `client_store` - A module name that implements the `Oidcc.Plug.ClientStore` behaviour
+  to fetch the client context from a store instead of using the `provider`, `client_id` and `client_secret`
+  directly. This is useful for storing the client context in a database or other persistent
+  storage.
   """
   @typedoc since: "0.1.0"
   @type opts :: [
@@ -72,21 +75,20 @@ defmodule Oidcc.Plug.ValidateJwtToken do
         :client_secret,
         send_inactive_token_response: &__MODULE__.send_inactive_token_response/1
       ])
+      |> Utils.validate_client_context_opts!()
 
   @impl Plug
   def call(%Plug.Conn{private: %{ExtractAuthorization => nil}} = conn, _opts), do: conn
 
   def call(%Plug.Conn{private: %{ExtractAuthorization => access_token}} = conn, opts) do
-    provider = Keyword.fetch!(opts, :provider)
-    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
-
     send_inactive_token_response = Keyword.fetch!(opts, :send_inactive_token_response)
 
-    validate_opts = %{nonce: :any, refresh_jwks: :oidcc_jwt_util.refresh_jwks_fun(provider)}
+    refresh_jwks = Utils.get_refresh_jwks_fun(opts)
+
+    validate_opts = %{nonce: :any, refresh_jwks: refresh_jwks}
 
     with {:ok, client_context} <-
-           Oidcc.ClientContext.from_configuration_worker(provider, client_id, client_secret),
+           Utils.get_client_context(conn, opts),
          {:ok, claims} <-
            Oidcc.Token.validate_id_token(access_token, client_context, validate_opts) do
       put_private(conn, __MODULE__, claims)
