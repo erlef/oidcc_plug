@@ -58,8 +58,7 @@ defmodule Oidcc.Plug.IntrospectToken do
           client_id: String.t() | (-> String.t()),
           client_secret: String.t() | (-> String.t()),
           token_introspection_opts: :oidcc_token_introspection.opts(),
-          send_inactive_token_response: (conn :: Plug.Conn.t(),
-                                         introspection :: Oidcc.TokenIntrospection.t() ->
+          send_inactive_token_response: (conn :: Plug.Conn.t(), introspection :: Oidcc.TokenIntrospection.t() ->
                                            Plug.Conn.t()),
           cache: Oidcc.Plug.Cache.t()
         ]
@@ -81,7 +80,8 @@ defmodule Oidcc.Plug.IntrospectToken do
   @impl Plug
   def init(opts),
     do:
-      Keyword.validate!(opts, [
+      opts
+      |> Keyword.validate!([
         :provider,
         :client_id,
         :client_secret,

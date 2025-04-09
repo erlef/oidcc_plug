@@ -1,9 +1,9 @@
 defmodule Oidcc.Plug.Cache.Noop do
   @moduledoc false
 
-  alias Oidcc.Plug.Cache
+  @behaviour Oidcc.Plug.Cache
 
-  @behaviour Cache
+  alias Oidcc.Plug.Cache
 
   @impl Cache
   def get(_type, _token, _conn), do: :miss

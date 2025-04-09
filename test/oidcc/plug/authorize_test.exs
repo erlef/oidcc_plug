@@ -2,11 +2,12 @@ defmodule Oidcc.Plug.AuthorizeTest do
   use ExUnit.Case, async: false
 
   import Mock
-  import Plug.Test
   import Plug.Conn
+  import Plug.Test
 
   alias Oidcc.ClientContext
   alias Oidcc.Plug.Authorize
+  alias Oidcc.Plug.ClientStore
   alias Oidcc.ProviderConfiguration
 
   doctest Authorize
@@ -44,8 +45,7 @@ defmodule Oidcc.Plug.AuthorizeTest do
 
   describe inspect(&Authorize.call/2) do
     test_with_mock "successful redirect", %{}, Oidcc.Authorization, [],
-      create_redirect_url: fn _client_context,
-                              %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+      create_redirect_url: fn _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
         {:ok, "http://example.com"}
       end do
       opts =
@@ -70,8 +70,7 @@ defmodule Oidcc.Plug.AuthorizeTest do
     end
 
     test_with_mock "error handling", %{}, Oidcc.Authorization, [],
-      create_redirect_url: fn _client_context,
-                              %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+      create_redirect_url: fn _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
         {:error, :provider_not_ready}
       end do
       opts =
@@ -93,9 +92,10 @@ defmodule Oidcc.Plug.AuthorizeTest do
 
   describe "client_store" do
     defmodule TestClientStore do
-      @behaviour Oidcc.Plug.ClientStore
+      @moduledoc false
+      @behaviour ClientStore
 
-      @impl Oidcc.Plug.ClientStore
+      @impl ClientStore
       def get_client_context(_conn) do
         {:ok, provider_configuration} =
           ProviderConfiguration.decode_configuration(%{
@@ -120,7 +120,7 @@ defmodule Oidcc.Plug.AuthorizeTest do
          )}
       end
 
-      @impl Oidcc.Plug.ClientStore
+      @impl ClientStore
       def refresh_jwks(_context) do
         jwks = JOSE.JWK.generate_key({:oct, 64})
         {:ok, jwks}
@@ -128,8 +128,7 @@ defmodule Oidcc.Plug.AuthorizeTest do
     end
 
     test_with_mock "successful redirect with client_store", %{}, Oidcc.Authorization, [],
-      create_redirect_url: fn _client_context,
-                              %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+      create_redirect_url: fn _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
         {:ok, "http://example.com"}
       end do
       opts =
@@ -152,9 +151,10 @@ defmodule Oidcc.Plug.AuthorizeTest do
     end
 
     defmodule ErrorClientStore do
-      @behaviour Oidcc.Plug.ClientStore
+      @moduledoc false
+      @behaviour ClientStore
 
-      @impl Oidcc.Plug.ClientStore
+      @impl ClientStore
       def get_client_context(_conn) do
         {:error, :client_context_not_found}
       end

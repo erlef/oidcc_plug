@@ -15,7 +15,7 @@ defmodule Oidcc.Plug.Utils do
       client_store.get_client_context(conn)
     else
       provider = Keyword.get(opts, :provider)
-      client_id = Keyword.get(opts, :client_id) |> evaluate_config()
+      client_id = opts |> Keyword.get(:client_id) |> evaluate_config()
       client_secret = opts |> Keyword.get(:client_secret) |> evaluate_config()
       client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
 
@@ -36,8 +36,7 @@ defmodule Oidcc.Plug.Utils do
   def get_refresh_jwks_fun(opts) do
     if client_store = Keyword.get(opts, :client_store) do
       if function_exported?(client_store, :refresh_jwks, 1),
-        do: &client_store.refresh_jwks/1,
-        else: nil
+        do: &client_store.refresh_jwks/1
     else
       provider = Keyword.fetch!(opts, :provider)
       :oidcc_jwt_util.refresh_jwks_fun(provider)
@@ -52,7 +51,8 @@ defmodule Oidcc.Plug.Utils do
   @spec validate_client_context_opts!(Keyword.t()) :: Keyword.t()
   def validate_client_context_opts!(opts) do
     keys =
-      Keyword.take(opts, [
+      opts
+      |> Keyword.take([
         :client_store,
         :provider,
         :client_id,

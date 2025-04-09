@@ -1,8 +1,8 @@
 defmodule Oidcc.Plug.RequireAuthorizationTest do
   use ExUnit.Case, async: false
 
-  import Plug.Test
   import Plug.Conn
+  import Plug.Test
 
   alias Oidcc.Plug.ExtractAuthorization
   alias Oidcc.Plug.RequireAuthorization

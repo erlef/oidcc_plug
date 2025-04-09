@@ -30,9 +30,8 @@ defmodule Oidcc.Plug.LoadUserinfo do
 
   @behaviour Plug
 
-  import Plug.Conn, only: [put_private: 3, halt: 1, send_resp: 3]
-
   import Oidcc.Plug.Config, only: [evaluate_config: 1]
+  import Plug.Conn, only: [put_private: 3, halt: 1, send_resp: 3]
 
   alias Oidcc.Plug.ExtractAuthorization
 
