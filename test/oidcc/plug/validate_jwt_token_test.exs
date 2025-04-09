@@ -2,8 +2,8 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
   use ExUnit.Case, async: false
 
   import Mock
-  import Plug.Test
   import Plug.Conn
+  import Plug.Test
 
   alias Oidcc.Plug.ExtractAuthorization
   alias Oidcc.Plug.ValidateJwtToken
@@ -164,9 +164,7 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
 
   test "integration test" do
     pid =
-      start_link_supervised!(
-        {Oidcc.ProviderConfiguration.Worker, %{issuer: "https://erlef-test-w4a8z2.zitadel.cloud"}}
-      )
+      start_link_supervised!({Oidcc.ProviderConfiguration.Worker, %{issuer: "https://erlef-test-w4a8z2.zitadel.cloud"}})
 
     %{"key" => key, "keyId" => kid, "userId" => subject} =
       :oidcc_plug

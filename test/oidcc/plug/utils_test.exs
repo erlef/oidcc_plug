@@ -2,9 +2,10 @@ defmodule Oidcc.Plug.UtilsTest do
   # set to false because we're using mocks
   use ExUnit.Case, async: false
 
-  import Plug.Test
   import Mock
+  import Plug.Test
 
+  alias Oidcc.Plug.ClientStore
   alias Oidcc.Plug.Utils
 
   doctest Utils
@@ -72,9 +73,10 @@ defmodule Oidcc.Plug.UtilsTest do
 
     test "can get client context from client_store" do
       defmodule TestClientStore do
-        @behaviour Oidcc.Plug.ClientStore
+        @moduledoc false
+        @behaviour ClientStore
 
-        @impl Oidcc.Plug.ClientStore
+        @impl ClientStore
         def get_client_context(_conn) do
           {:ok,
            %Oidcc.ClientContext{
@@ -141,9 +143,10 @@ defmodule Oidcc.Plug.UtilsTest do
 
     test "returns nil when client_store doesn't implement refresh_jwks" do
       defmodule ClientStoreWithoutRefresh do
-        @behaviour Oidcc.Plug.ClientStore
+        @moduledoc false
+        @behaviour ClientStore
 
-        @impl Oidcc.Plug.ClientStore
+        @impl ClientStore
         def get_client_context(_conn), do: {:ok, %{}}
       end
 
@@ -154,12 +157,13 @@ defmodule Oidcc.Plug.UtilsTest do
 
     test "returns client_store.refresh_jwks function when implemented" do
       defmodule ClientStoreWithRefresh do
-        @behaviour Oidcc.Plug.ClientStore
+        @moduledoc false
+        @behaviour ClientStore
 
-        @impl Oidcc.Plug.ClientStore
+        @impl ClientStore
         def get_client_context(_conn), do: {:ok, %{}}
 
-        @impl Oidcc.Plug.ClientStore
+        @impl ClientStore
         def refresh_jwks(arg), do: {:refreshed, arg}
       end
 

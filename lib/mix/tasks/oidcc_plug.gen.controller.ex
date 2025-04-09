@@ -1,16 +1,18 @@
+short_doc = "Generate an auth controller for your OpenID provider"
+
+example = """
+mix oidcc.gen.controller \\
+  --name MyApp.AuthController \\
+  --provider MyApp.OpenIDProvider \\
+  --base-url /auth \\
+  --issuer https://account.google.com \\
+  --client-id client-id\
+"""
+
 case Code.ensure_loaded(Igniter.Mix.Task) do
   {:module, Igniter.Mix.Task} ->
     defmodule Mix.Tasks.OidccPlug.Gen.Controller do
-      @example """
-      mix oidcc.gen.controller \\
-        --name MyApp.AuthController \\
-        --provider MyApp.OpenIDProvider \\
-        --base-url /auth \\
-        --issuer https://account.google.com \\
-        --client-id client-id\
-      """
-
-      @shortdoc "Generate an auth controller for your OpenID provider"
+      @shortdoc short_doc
 
       @moduledoc """
       #{@shortdoc}
@@ -21,7 +23,7 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
       ## Example
 
       ```bash
-      #{@example}
+      #{example}
       ```
 
       ## Options
@@ -40,6 +42,8 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
       alias Igniter.Project.Config
       alias Igniter.Project.IgniterConfig
       alias Igniter.Project.Module
+
+      @example example
 
       @impl Igniter.Mix.Task
       def info(_argv, _composing_task) do
@@ -196,11 +200,12 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
             quote do
               use unquote(web_module), :controller
 
+              alias Oidcc.Plug.AuthorizationCallback
+
               plug(
                 Oidcc.Plug.Authorize,
                 [
-                  provider:
-                    Application.compile_env(unquote(options[:app_name]), [__MODULE__, :provider]),
+                  provider: Application.compile_env(unquote(options[:app_name]), [__MODULE__, :provider]),
                   client_id: &__MODULE__.client_id/0,
                   client_secret: &__MODULE__.client_secret/0,
                   redirect_uri: &__MODULE__.callback_uri/0
@@ -209,10 +214,9 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
               )
 
               plug(
-                Oidcc.Plug.AuthorizationCallback,
+                AuthorizationCallback,
                 [
-                  provider:
-                    Application.compile_env(unquote(options[:app_name]), [__MODULE__, :provider]),
+                  provider: Application.compile_env(unquote(options[:app_name]), [__MODULE__, :provider]),
                   client_id: &__MODULE__.client_id/0,
                   client_secret: &__MODULE__.client_secret/0,
                   redirect_uri: &__MODULE__.callback_uri/0
@@ -224,7 +228,7 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
 
               def callback(
                     %Plug.Conn{
-                      private: %{Oidcc.Plug.AuthorizationCallback => {:ok, {_token, userinfo}}}
+                      private: %{AuthorizationCallback => {:ok, {_token, userinfo}}}
                     } =
                       conn,
                     params
@@ -241,7 +245,7 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
               end
 
               def callback(
-                    %Plug.Conn{private: %{Oidcc.Plug.AuthorizationCallback => {:error, reason}}} =
+                    %Plug.Conn{private: %{AuthorizationCallback => {:error, reason}}} =
                       conn,
                     _params
                   ) do
@@ -256,18 +260,11 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
 
               @doc false
               def client_secret,
-                do:
-                  Application.fetch_env!(unquote(options[:app_name]), __MODULE__)[:client_secret]
+                do: Application.fetch_env!(unquote(options[:app_name]), __MODULE__)[:client_secret]
 
               @doc false
               def callback_uri,
-                do:
-                  url(
-                    unquote(
-                      {:sigil_p, [delimiter: "\""],
-                       [{:<<>>, [], ["#{options[:base_url]}/callback"]}, []]}
-                    )
-                  )
+                do: url(unquote({:sigil_p, [delimiter: "\""], [{:<<>>, [], ["#{options[:base_url]}/callback"]}, []]}))
             end
           )
         )
@@ -349,7 +346,7 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
 
   _ ->
     defmodule Mix.Tasks.OidccPlug.Gen.Controller do
-      @shortdoc "Generate an auth controller for your OpenID provider | Install `igniter` to use"
+      @shortdoc "#{short_doc} | Install `igniter` to use"
       @moduledoc @shortdoc
 
       use Mix.Task

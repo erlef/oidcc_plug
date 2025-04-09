@@ -69,7 +69,8 @@ defmodule Oidcc.Plug.ValidateJwtToken do
   @impl Plug
   def init(opts),
     do:
-      Keyword.validate!(opts, [
+      opts
+      |> Keyword.validate!([
         :provider,
         :client_id,
         :client_secret,
