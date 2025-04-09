@@ -41,7 +41,11 @@ defmodule Oidcc.Plug.RequireAuthorization do
         ]
 
   @impl Plug
-  def init(opts), do: Keyword.validate!(opts, send_missing_token_response: &__MODULE__.send_missing_token_response/1)
+  def init(opts),
+    do:
+      Keyword.validate!(opts,
+        send_missing_token_response: &__MODULE__.send_missing_token_response/1
+      )
 
   @impl Plug
   def call(%Plug.Conn{private: %{ExtractAuthorization => nil}} = conn, opts) do

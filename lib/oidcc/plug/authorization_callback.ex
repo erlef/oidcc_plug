@@ -80,17 +80,17 @@ defmodule Oidcc.Plug.AuthorizationCallback do
 
   @behaviour Plug
 
-  import Oidcc.Plug.Config, only: [evaluate_config: 1]
-
-  import Plug.Conn,
-    only: [get_session: 2, delete_session: 2, put_private: 3, get_req_header: 2]
-
   alias Oidcc.ClientContext
   alias Oidcc.Plug.Authorize
   alias Oidcc.Plug.Utils
   alias Oidcc.ProviderConfiguration
   alias Oidcc.Token
   alias Oidcc.Userinfo
+
+  import Plug.Conn,
+    only: [get_session: 2, delete_session: 2, put_private: 3, get_req_header: 2]
+
+  import Oidcc.Plug.Config, only: [evaluate_config: 1]
 
   @typedoc """
   Plug Configuration Options
@@ -141,8 +141,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   @impl Plug
   def init(opts),
     do:
-      opts
-      |> Keyword.validate!([
+      Keyword.validate!(opts, [
         :provider,
         :client_id,
         :client_store,
@@ -161,7 +160,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   @impl Plug
   def call(%Plug.Conn{params: params, body_params: body_params} = conn, opts) do
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
-    client_profile_opts = Keyword.get(opts, :client_profile_opts, %{profiles: []})
+    client_profile_opts = opts |> Keyword.get(:client_profile_opts, %{profiles: []})
 
     params = Map.merge(params, body_params)
 
@@ -243,7 +242,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
       refresh_jwks: refresh_jwks
     })
     |> case do
-      %{pkce_verifier: :none} = opts -> Map.delete(opts, :pkce_verifier)
+      %{pkce_verifier: :none} = opts -> Map.drop(opts, [:pkce_verifier])
       opts -> opts
     end
   end
@@ -344,7 +343,9 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   defp retrieve_userinfo(token, client_context, retrieve_userinfo?)
   defp retrieve_userinfo(_token, _client_context, false), do: {:ok, nil}
 
-  defp retrieve_userinfo(token, client_context, true), do: Userinfo.retrieve(token, client_context, %{})
+  defp retrieve_userinfo(token, client_context, true),
+    do: Userinfo.retrieve(token, client_context, %{})
 
-  defp apply_profile(client_context, profile_opts), do: ClientContext.apply_profiles(client_context, profile_opts)
+  defp apply_profile(client_context, profile_opts),
+    do: ClientContext.apply_profiles(client_context, profile_opts)
 end

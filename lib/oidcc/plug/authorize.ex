@@ -27,14 +27,14 @@ defmodule Oidcc.Plug.Authorize do
 
   @behaviour Plug
 
-  import Oidcc.Plug.Config, only: [evaluate_config: 1]
+  alias Oidcc.Authorization
+  alias Oidcc.ClientContext
+  alias Oidcc.Plug.Utils
 
   import Plug.Conn,
     only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_req_header: 2]
 
-  alias Oidcc.Authorization
-  alias Oidcc.ClientContext
-  alias Oidcc.Plug.Utils
+  import Oidcc.Plug.Config, only: [evaluate_config: 1]
 
   defmodule Error do
     @moduledoc """
@@ -77,15 +77,15 @@ defmodule Oidcc.Plug.Authorize do
           client_store: module() | nil,
           client_id: String.t() | (-> String.t()) | nil,
           client_secret: String.t() | (-> String.t()) | nil,
-          client_context_opts: :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()) | nil,
+          client_context_opts:
+            :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()) | nil,
           client_profile_opts: :oidcc_profile.opts()
         ]
 
   @impl Plug
   def init(opts),
     do:
-      opts
-      |> Keyword.validate!([
+      Keyword.validate!(opts, [
         :provider,
         :client_store,
         :client_id,
@@ -101,7 +101,7 @@ defmodule Oidcc.Plug.Authorize do
   @impl Plug
   def call(%Plug.Conn{params: params} = conn, opts) do
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
-    client_profile_opts = Keyword.get(opts, :client_profile_opts, %{profiles: []})
+    client_profile_opts = opts |> Keyword.get(:client_profile_opts, %{profiles: []})
 
     state = Map.get(params, "state", :undefined)
     state_verifier = :erlang.phash2(state)
@@ -147,7 +147,8 @@ defmodule Oidcc.Plug.Authorize do
     end
   end
 
-  defp apply_profile(client_context, profile_opts), do: ClientContext.apply_profiles(client_context, profile_opts)
+  defp apply_profile(client_context, profile_opts),
+    do: ClientContext.apply_profiles(client_context, profile_opts)
 
   @doc false
   @spec get_session_name :: String.t()

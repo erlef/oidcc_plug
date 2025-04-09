@@ -37,7 +37,7 @@ defmodule Oidcc.Plug.MixProject do
     ]
   end
 
-  defp package do
+  defp package() do
     [
       maintainers: ["Jonatan Männchen"],
       files: [
@@ -65,19 +65,17 @@ defmodule Oidcc.Plug.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    # styler:sort
     [
-      {:credo, "~> 1.7", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:oidcc, "~> 3.5"},
+      {:plug, "~> 1.14"},
+      {:igniter, "~> 0.5.43", optional: true},
+      {:phoenix, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18.1", only: :test, runtime: false},
-      {:igniter, "~> 0.5.43", optional: true},
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: :dev, runtime: false},
       {:mock, "~> 0.3.8", only: :test},
-      {:oidcc, "~> 3.5"},
-      {:phoenix, "~> 1.7", only: [:dev, :test]},
-      {:phx_new, "~> 1.7", only: :test},
-      {:plug, "~> 1.14"},
-      {:styler, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:phx_new, "~> 1.7", only: :test}
     ]
   end
 end

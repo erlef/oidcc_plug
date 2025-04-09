@@ -2,8 +2,8 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
   use ExUnit.Case, async: false
 
   import Mock
-  import Plug.Conn
   import Plug.Test
+  import Plug.Conn
 
   alias Oidcc.Plug.ExtractAuthorization
   alias Oidcc.Plug.IntrospectToken
@@ -155,10 +155,9 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
 
     test "uses cache if provided and found" do
       defmodule ActiveCache do
-        @moduledoc false
-        @behaviour Oidcc.Plug.Cache
-
         alias Oidcc.Plug.Cache
+
+        @behaviour Cache
 
         @impl Cache
         def get(_type, _token, _conn), do: {:ok, %Oidcc.TokenIntrospection{active: true}}
@@ -187,10 +186,9 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
 
     test "uses cache if provided and found and inactive" do
       defmodule InactiveCache do
-        @moduledoc false
-        @behaviour Oidcc.Plug.Cache
-
         alias Oidcc.Plug.Cache
+
+        @behaviour Cache
 
         @impl Cache
         def get(_type, _token, _conn), do: {:ok, %Oidcc.TokenIntrospection{active: false}}
@@ -221,7 +219,9 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
   @tag :skip
   test "integration test" do
     pid =
-      start_link_supervised!({Oidcc.ProviderConfiguration.Worker, %{issuer: "https://erlef-test-w4a8z2.zitadel.cloud"}})
+      start_link_supervised!(
+        {Oidcc.ProviderConfiguration.Worker, %{issuer: "https://erlef-test-w4a8z2.zitadel.cloud"}}
+      )
 
     %{"key" => key, "keyId" => kid, "userId" => subject} =
       :oidcc_plug

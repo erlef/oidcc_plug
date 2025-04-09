@@ -2,13 +2,12 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
   use ExUnit.Case, async: false
 
   import Mock
-  import Plug.Conn
   import Plug.Test
+  import Plug.Conn
 
   alias Oidcc.ClientContext
   alias Oidcc.Plug.AuthorizationCallback
   alias Oidcc.Plug.Authorize
-  alias Oidcc.Plug.ClientStore
   alias Oidcc.ProviderConfiguration
 
   doctest AuthorizationCallback
@@ -93,7 +92,9 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
     end
 
     test_with_mock "successful retrieve without userinfo", %{}, Oidcc.Token, [],
-      retrieve: fn "code", _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+      retrieve: fn "code",
+                   _client_context,
+                   %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
         {:ok, :token}
       end do
       opts =
@@ -232,7 +233,9 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
     test "allows mismatch if disabled" do
       with_mocks [
         {Oidcc.Token, [],
-         retrieve: fn "code", _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+         retrieve: fn "code",
+                      _client_context,
+                      %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
            {:ok, :token}
          end},
         {Oidcc.Userinfo, [],
@@ -305,7 +308,9 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
     test "state mismatch" do
       with_mocks [
         {Oidcc.Token, [],
-         retrieve: fn "code", _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+         retrieve: fn "code",
+                      _client_context,
+                      %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
            {:ok, :token}
          end},
         {Oidcc.Userinfo, [],
@@ -384,7 +389,9 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
     test "passes none alg with userinfo" do
       with_mocks [
         {Oidcc.Token, [],
-         retrieve: fn "code", _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+         retrieve: fn "code",
+                      _client_context,
+                      %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
            {:error, {:none_alg_used, :token}}
          end},
         {Oidcc.Userinfo, [],
@@ -424,7 +431,9 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
   end
 
   test_with_mock "fails none alg without userinfo", %{}, Oidcc.Token, [],
-    retrieve: fn "code", _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+    retrieve: fn "code",
+                 _client_context,
+                 %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
       {:error, {:none_alg_used, :token}}
     end do
     opts =
@@ -456,7 +465,9 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
   end
 
   test_with_mock "relays errors", %{}, Oidcc.Token, [],
-    retrieve: fn "code", _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+    retrieve: fn "code",
+                 _client_context,
+                 %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
       {:error, :provider_not_ready}
     end do
     opts =
@@ -516,10 +527,9 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
 
   describe "client_store" do
     defmodule TestClientStore do
-      @moduledoc false
-      @behaviour ClientStore
+      @behaviour Oidcc.Plug.ClientStore
 
-      @impl ClientStore
+      @impl Oidcc.Plug.ClientStore
       def get_client_context(_conn) do
         {:ok, provider_configuration} =
           ProviderConfiguration.decode_configuration(%{
@@ -544,7 +554,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
          )}
       end
 
-      @impl ClientStore
+      @impl Oidcc.Plug.ClientStore
       def refresh_jwks(_context) do
         jwks = JOSE.JWK.generate_key({:oct, 64})
         {:ok, jwks}
