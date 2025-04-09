@@ -66,38 +66,37 @@ defmodule OidccPlug.Gen.ControllerTest do
     7 |
     """)
     |> assert_has_patch("lib/test_web/controllers/auth_controller.ex", """
-    1  |defmodule TestWeb.AuthController do
     2  |  use TestWeb, :controller
-    3  |
-    4  |  plug(
-    5  |    Oidcc.Plug.Authorize,
-    6  |    [
-    7  |      provider: Application.compile_env(:test, [__MODULE__, :provider]),
-    8  |      client_id: &__MODULE__.client_id/0,
-    9  |      client_secret: &__MODULE__.client_secret/0,
-    10 |      redirect_uri: &__MODULE__.callback_uri/0
-    11 |    ]
-    12 |    when action in [:authorize]
-    13 |  )
-    14 |
-    15 |  plug(
-    16 |    Oidcc.Plug.AuthorizationCallback,
-    17 |    [
-    18 |      provider: Application.compile_env(:test, [__MODULE__, :provider]),
-    19 |      client_id: &__MODULE__.client_id/0,
-    20 |      client_secret: &__MODULE__.client_secret/0,
-    21 |      redirect_uri: &__MODULE__.callback_uri/0
-    22 |    ]
-    23 |    when action in [:callback]
-    24 |  )
-    25 |
-    26 |  def authorize(conn, _params) do
-    27 |    conn
-    28 |  end
-    29 |
-    30 |  def callback(
-    31 |        %Plug.Conn{private: %{Oidcc.Plug.AuthorizationCallback => {:ok, {_token, userinfo}}}} =
-    32 |          conn,
+    3  |  alias Oidcc.Plug.AuthorizationCallback
+    4  |
+    5  |  plug(
+    6  |    Oidcc.Plug.Authorize,
+    7  |    [
+    8  |      provider: Application.compile_env(:test, [__MODULE__, :provider]),
+    9  |      client_id: &__MODULE__.client_id/0,
+    10 |      client_secret: &__MODULE__.client_secret/0,
+    11 |      redirect_uri: &__MODULE__.callback_uri/0
+    12 |    ]
+    13 |    when action in [:authorize]
+    14 |  )
+    15 |
+    16 |  plug(
+    17 |    AuthorizationCallback,
+    18 |    [
+    19 |      provider: Application.compile_env(:test, [__MODULE__, :provider]),
+    20 |      client_id: &__MODULE__.client_id/0,
+    21 |      client_secret: &__MODULE__.client_secret/0,
+    22 |      redirect_uri: &__MODULE__.callback_uri/0
+    23 |    ]
+    24 |    when action in [:callback]
+    25 |  )
+    26 |
+    27 |  def authorize(conn, _params) do
+    28 |    conn
+    29 |  end
+    30 |
+    31 |  def callback(
+    32 |        %Plug.Conn{private: %{AuthorizationCallback => {:ok, {_token, userinfo}}}} = conn,
     33 |        params
     34 |      ) do
     35 |    conn
@@ -111,29 +110,26 @@ defmodule OidccPlug.Gen.ControllerTest do
     43 |    )
     44 |  end
     45 |
-    46 |  def callback(
-    47 |        %Plug.Conn{private: %{Oidcc.Plug.AuthorizationCallback => {:error, reason}}} = conn,
-    48 |        _params
-    49 |      ) do
-    50 |    conn |> put_status(400) |> render(:error, reason: reason)
-    51 |  end
-    52 |
-    53 |  @doc false
-    54 |  def client_id do
-    55 |    Application.fetch_env!(:test, __MODULE__)[:client_id]
-    56 |  end
-    57 |
-    58 |  @doc false
-    59 |  def client_secret do
-    60 |    Application.fetch_env!(:test, __MODULE__)[:client_secret]
-    61 |  end
-    62 |
-    63 |  @doc false
-    64 |  def callback_uri do
-    65 |    url(~p"/auth/callback")
-    66 |  end
-    67 |end
-    68 |
+    46 |  def callback(%Plug.Conn{private: %{AuthorizationCallback => {:error, reason}}} = conn, _params) do
+    47 |    conn |> put_status(400) |> render(:error, reason: reason)
+    48 |  end
+    49 |
+    50 |  @doc false
+    51 |  def client_id do
+    52 |    Application.fetch_env!(:test, __MODULE__)[:client_id]
+    53 |  end
+    54 |
+    55 |  @doc false
+    56 |  def client_secret do
+    57 |    Application.fetch_env!(:test, __MODULE__)[:client_secret]
+    58 |  end
+    59 |
+    60 |  @doc false
+    61 |  def callback_uri do
+    62 |    url(~p"/auth/callback")
+    63 |  end
+    64 |end
+    65 |
     """)
     |> assert_has_patch("lib/test_web/controllers/auth_html/error.html.heex", """
     1 |<p>error:</p>
