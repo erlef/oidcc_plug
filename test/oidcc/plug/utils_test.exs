@@ -1,41 +1,3 @@
-alias Oidcc.Plug.ClientStore
-
-defmodule TestClientStore do
-  @moduledoc false
-  @behaviour ClientStore
-
-  @impl ClientStore
-  def get_client_context(_conn) do
-    {:ok,
-     %Oidcc.ClientContext{
-       provider_configuration: %Oidcc.ProviderConfiguration{},
-       jwks: %{},
-       client_id: "test-client",
-       client_secret: "secret",
-       client_jwks: :none
-     }}
-  end
-end
-
-defmodule ClientStoreWithoutRefresh do
-  @moduledoc false
-  @behaviour ClientStore
-
-  @impl ClientStore
-  def get_client_context(_conn), do: {:ok, %{}}
-end
-
-defmodule ClientStoreWithRefresh do
-  @moduledoc false
-  @behaviour ClientStore
-
-  @impl ClientStore
-  def get_client_context(_conn), do: {:ok, %{}}
-
-  @impl ClientStore
-  def refresh_jwks(arg), do: {:refreshed, arg}
-end
-
 defmodule Oidcc.Plug.UtilsTest do
   # set to false because we're using mocks
   use ExUnit.Case, async: false
@@ -109,6 +71,25 @@ defmodule Oidcc.Plug.UtilsTest do
     end
 
     test "can get client context from client_store" do
+      defmodule TestClientStore do
+        @moduledoc false
+        @behaviour Oidcc.Plug.ClientStore
+
+        alias Oidcc.Plug.ClientStore
+
+        @impl ClientStore
+        def get_client_context(_conn) do
+          {:ok,
+           %Oidcc.ClientContext{
+             provider_configuration: %Oidcc.ProviderConfiguration{},
+             jwks: %{},
+             client_id: "test-client",
+             client_secret: "secret",
+             client_jwks: :none
+           }}
+        end
+      end
+
       conn = conn(:get, "/")
       opts = [client_store: TestClientStore]
 
@@ -162,12 +143,35 @@ defmodule Oidcc.Plug.UtilsTest do
     end
 
     test "returns nil when client_store doesn't implement refresh_jwks" do
+      defmodule ClientStoreWithoutRefresh do
+        @moduledoc false
+        @behaviour Oidcc.Plug.ClientStore
+
+        alias Oidcc.Plug.ClientStore
+
+        @impl ClientStore
+        def get_client_context(_conn), do: {:ok, %{}}
+      end
+
       opts = [client_store: ClientStoreWithoutRefresh]
 
       assert Utils.get_refresh_jwks_fun(opts) == nil
     end
 
     test "returns client_store.refresh_jwks function when implemented" do
+      defmodule ClientStoreWithRefresh do
+        @moduledoc false
+        @behaviour Oidcc.Plug.ClientStore
+
+        alias Oidcc.Plug.ClientStore
+
+        @impl ClientStore
+        def get_client_context(_conn), do: {:ok, %{}}
+
+        @impl ClientStore
+        def refresh_jwks(arg), do: {:refreshed, arg}
+      end
+
       opts = [client_store: ClientStoreWithRefresh]
 
       refresh_fun = Utils.get_refresh_jwks_fun(opts)
