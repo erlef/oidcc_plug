@@ -29,6 +29,7 @@ defmodule Oidcc.Plug.Authorize do
 
   alias Oidcc.Authorization
   alias Oidcc.ClientContext
+  alias Oidcc.Plug.Utils
 
   import Plug.Conn,
     only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_req_header: 2]
@@ -62,16 +63,22 @@ defmodule Oidcc.Plug.Authorize do
   * `client_secret` - OAuth Client Secret to use for the introspection
   * `client_context_opts` - Options for Client Context Initialization
   * `client_profile_opts` - Options for Client Context Profiles
+  * `client_store` - A module name that implements the `Oidcc.Plug.ClientStore` behaviour
+    to fetch the client context from a store instead of using the `provider`, `client_id` and `client_secret`
+    directly. This is useful for storing the client context in a database or other persistent
+    storage.
   """
   @typedoc since: "0.1.0"
   @type opts :: [
           scopes: :oidcc_scope.scopes(),
           redirect_uri: String.t() | (-> String.t()),
           url_extension: :oidcc_http_util.query_params(),
-          provider: GenServer.name(),
-          client_id: String.t() | (-> String.t()),
-          client_secret: String.t() | (-> String.t()),
-          client_context_opts: :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()),
+          provider: GenServer.name() | nil,
+          client_store: module() | nil,
+          client_id: String.t() | (-> String.t()) | nil,
+          client_secret: String.t() | (-> String.t()) | nil,
+          client_context_opts:
+            :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()) | nil,
           client_profile_opts: :oidcc_profile.opts()
         ]
 
@@ -80,6 +87,7 @@ defmodule Oidcc.Plug.Authorize do
     do:
       Keyword.validate!(opts, [
         :provider,
+        :client_store,
         :client_id,
         :client_secret,
         :redirect_uri,
@@ -88,14 +96,11 @@ defmodule Oidcc.Plug.Authorize do
         url_extension: [],
         scopes: ["openid"]
       ])
+      |> Utils.validate_client_context_opts!()
 
   @impl Plug
   def call(%Plug.Conn{params: params} = conn, opts) do
-    provider = Keyword.fetch!(opts, :provider)
-    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
-    client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
     client_profile_opts = opts |> Keyword.get(:client_profile_opts, %{profiles: []})
 
     state = Map.get(params, "state", :undefined)
@@ -118,13 +123,7 @@ defmodule Oidcc.Plug.Authorize do
       )
       |> Map.new()
 
-    with {:ok, client_context} <-
-           ClientContext.from_configuration_worker(
-             provider,
-             client_id,
-             client_secret,
-             client_context_opts
-           ),
+    with {:ok, client_context} <- Utils.get_client_context(conn, opts),
          {:ok, client_context, profile_opts} <-
            apply_profile(client_context, client_profile_opts),
          {:ok, redirect_uri} <-
