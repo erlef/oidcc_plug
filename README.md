@@ -120,7 +120,7 @@ mix oidcc.gen.controller \
 defmodule SampleApp.Application do
   # ...
 
-  @impl true
+  @impl Application
   def start(_type, _args) do
     children = [
       # ...

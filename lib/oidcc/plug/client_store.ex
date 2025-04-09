@@ -17,7 +17,7 @@ defmodule Oidcc.Plug.ClientStore do
     alias Oidcc.ClientContext
     alias Oidcc.ProviderConfiguration
 
-    @impl true
+    @impl Oidcc.Plug.ClientStore
     def get_client_context(conn) do
       with email when is_binary(email) <- conn.assigns[:email],
         {:ok, okta_config} <- get_okta_oidc_config(email),

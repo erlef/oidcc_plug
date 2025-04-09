@@ -74,7 +74,7 @@ defmodule Oidcc.Plug.UtilsTest do
       defmodule TestClientStore do
         @behaviour Oidcc.Plug.ClientStore
 
-        @impl true
+        @impl Oidcc.Plug.ClientStore
         def get_client_context(_conn) do
           {:ok,
            %Oidcc.ClientContext{
@@ -143,7 +143,7 @@ defmodule Oidcc.Plug.UtilsTest do
       defmodule ClientStoreWithoutRefresh do
         @behaviour Oidcc.Plug.ClientStore
 
-        @impl true
+        @impl Oidcc.Plug.ClientStore
         def get_client_context(_conn), do: {:ok, %{}}
       end
 
@@ -156,10 +156,10 @@ defmodule Oidcc.Plug.UtilsTest do
       defmodule ClientStoreWithRefresh do
         @behaviour Oidcc.Plug.ClientStore
 
-        @impl true
+        @impl Oidcc.Plug.ClientStore
         def get_client_context(_conn), do: {:ok, %{}}
 
-        @impl true
+        @impl Oidcc.Plug.ClientStore
         def refresh_jwks(arg), do: {:refreshed, arg}
       end
 

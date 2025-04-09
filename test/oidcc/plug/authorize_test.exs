@@ -95,7 +95,7 @@ defmodule Oidcc.Plug.AuthorizeTest do
     defmodule TestClientStore do
       @behaviour Oidcc.Plug.ClientStore
 
-      @impl true
+      @impl Oidcc.Plug.ClientStore
       def get_client_context(_conn) do
         {:ok, provider_configuration} =
           ProviderConfiguration.decode_configuration(%{
@@ -120,7 +120,7 @@ defmodule Oidcc.Plug.AuthorizeTest do
          )}
       end
 
-      @impl true
+      @impl Oidcc.Plug.ClientStore
       def refresh_jwks(_context) do
         jwks = JOSE.JWK.generate_key({:oct, 64})
         {:ok, jwks}
@@ -154,7 +154,7 @@ defmodule Oidcc.Plug.AuthorizeTest do
     defmodule ErrorClientStore do
       @behaviour Oidcc.Plug.ClientStore
 
-      @impl true
+      @impl Oidcc.Plug.ClientStore
       def get_client_context(_conn) do
         {:error, :client_context_not_found}
       end
