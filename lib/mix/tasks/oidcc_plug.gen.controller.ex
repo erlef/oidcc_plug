@@ -1,7 +1,7 @@
 short_doc = "Generate an auth controller for your OpenID provider"
 
 example = """
-mix oidcc.gen.controller \\
+mix oidcc_plug.gen.controller \\
   --name MyApp.AuthController \\
   --provider MyApp.OpenIDProvider \\
   --base-url /auth \\
