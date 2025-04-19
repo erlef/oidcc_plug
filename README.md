@@ -99,12 +99,12 @@ setup for phoenix:
 mix igniter.new test \
   --install phoenix,oidcc,oidcc_plug \
   --with phx.new
-  
+
 # Add Igniter Phoenix Extension
 mix igniter.add_extension phoenix
 
 # Generate Provider, Controller, Router & Config
-mix oidcc.gen.controller \
+mix oidcc_plug.gen.controller \
     --name MyApp.AuthController \
     --provider MyApp.OpenIDProvider \
     --base-url /auth \
