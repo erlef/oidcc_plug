@@ -20,3 +20,11 @@ jobs:
     name: "Publish"
 
     uses: ./.github/workflows/part_publish.yml
+
+  dependency_submission:
+    name: "Mix Dependency Submission"
+
+    permissions:
+      contents: write
+
+    uses: ./.github/workflows/part_dependency_submission.yml
