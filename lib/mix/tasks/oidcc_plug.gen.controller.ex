@@ -78,9 +78,8 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
       end
 
       @impl Igniter.Mix.Task
-      def igniter(igniter, argv) do
-        {_arguments, argv} = positional_args!(argv)
-        options = setup_options(argv, igniter)
+      def igniter(igniter) do
+        options = setup_options(igniter)
 
         igniter
         |> IgniterConfig.setup()
@@ -90,9 +89,8 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
         |> add_routes(options)
       end
 
-      defp setup_options(argv, igniter) do
-        argv
-        |> options!()
+      defp setup_options(igniter) do
+        igniter.args.options
         |> Keyword.update(
           :name,
           Phoenix.web_module_name(igniter, "AuthController"),
