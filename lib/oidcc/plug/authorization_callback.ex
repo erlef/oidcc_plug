@@ -210,8 +210,8 @@ defmodule Oidcc.Plug.AuthorizationCallback do
                retrieve_userinfo?,
                Map.merge(profile_opts, token_opts)
              ),
-           {:ok, userinfo} <-
-             retrieve_userinfo(token, client_context, retrieve_userinfo?) do
+           userinfo_opts = prepare_userinfo_opts(opts),
+           {:ok, userinfo} <- retrieve_userinfo(token, client_context, userinfo_opts, retrieve_userinfo?) do
         {:ok, {token, userinfo}}
       end
 
@@ -246,6 +246,13 @@ defmodule Oidcc.Plug.AuthorizationCallback do
       %{pkce_verifier: :none} = opts -> Map.delete(opts, :pkce_verifier)
       opts -> opts
     end
+  end
+
+  @spec prepare_userinfo_opts(opts :: opts()) :: :oidcc_userinfo.retrieve_opts()
+  defp prepare_userinfo_opts(opts) do
+    refresh_jwks = Utils.get_refresh_jwks_fun(opts)
+
+    %{refresh_jwks: refresh_jwks}
   end
 
   @spec check_peer_ip(
@@ -334,17 +341,20 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   @spec retrieve_userinfo(
           token :: Oidcc.Token.t(),
           client_context :: ClientContext.t(),
+          userinfo_opts :: :oidcc_userinfo.retrieve_opts(),
           retrieve_userinfo? :: true
         ) :: {:ok, :oidcc_jwt_util.claims()} | {:error, error()}
   @spec retrieve_userinfo(
           token :: Oidcc.Token.t(),
           client_context :: ClientContext.t(),
+          userinfo_opts :: :oidcc_userinfo.retrieve_opts(),
           retrieve_userinfo? :: false
         ) :: {:ok, nil} | {:error, error()}
-  defp retrieve_userinfo(token, client_context, retrieve_userinfo?)
-  defp retrieve_userinfo(_token, _client_context, false), do: {:ok, nil}
+  defp retrieve_userinfo(token, client_context, userinfo_opts, retrieve_userinfo?)
+  defp retrieve_userinfo(_token, _client_context, _userinfo_opts, false), do: {:ok, nil}
 
-  defp retrieve_userinfo(token, client_context, true), do: Userinfo.retrieve(token, client_context, %{})
+  defp retrieve_userinfo(token, client_context, userinfo_opts, true),
+    do: Userinfo.retrieve(token, client_context, userinfo_opts)
 
   defp apply_profile(client_context, profile_opts), do: ClientContext.apply_profiles(client_context, profile_opts)
 end
