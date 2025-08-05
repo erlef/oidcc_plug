@@ -179,14 +179,14 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
 
         html_template_path =
           Path.join([
-            igniter |> Igniter.Project.Module.proper_location(web_module) |> Path.rootname(".ex"),
+            igniter |> Module.proper_location(web_module) |> Path.rootname(".ex"),
             "controllers",
             html_path
           ])
 
         page_html_template_path =
           Path.join([
-            igniter |> Igniter.Project.Module.proper_location(web_module) |> Path.rootname(".ex"),
+            igniter |> Module.proper_location(web_module) |> Path.rootname(".ex"),
             "controllers",
             "page_html"
           ])

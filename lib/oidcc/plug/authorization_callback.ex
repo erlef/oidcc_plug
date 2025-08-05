@@ -329,7 +329,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
           client_context :: ClientContext.t(),
           retrieve_userinfo? :: boolean(),
           token_opts :: :oidcc_token.retrieve_opts()
-        ) :: {:ok, Oidcc.Token.t()} | {:error, error()}
+        ) :: {:ok, Token.t()} | {:error, error()}
   defp retrieve_token(code, client_context, retrieve_userinfo?, token_opts) do
     case Token.retrieve(code, client_context, token_opts) do
       {:ok, token} -> {:ok, token}
@@ -339,13 +339,13 @@ defmodule Oidcc.Plug.AuthorizationCallback do
   end
 
   @spec retrieve_userinfo(
-          token :: Oidcc.Token.t(),
+          token :: Token.t(),
           client_context :: ClientContext.t(),
           userinfo_opts :: :oidcc_userinfo.retrieve_opts(),
           retrieve_userinfo? :: true
         ) :: {:ok, :oidcc_jwt_util.claims()} | {:error, error()}
   @spec retrieve_userinfo(
-          token :: Oidcc.Token.t(),
+          token :: Token.t(),
           client_context :: ClientContext.t(),
           userinfo_opts :: :oidcc_userinfo.retrieve_opts(),
           retrieve_userinfo? :: false

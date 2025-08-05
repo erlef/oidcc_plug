@@ -14,7 +14,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
   doctest AuthorizationCallback
 
   setup_with_mocks([
-    {Oidcc.ClientContext, [:passthrough],
+    {ClientContext, [:passthrough],
      [
        from_configuration_worker: fn _provider, _client_id, _client_secret, _opts ->
          {:ok, provider_configuration} =
@@ -73,7 +73,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         assert %{
                  halted: false,
                  private: %{
-                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
                  }
                } =
                  "get"
@@ -107,7 +107,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
 
       assert %{
                halted: false,
-               private: %{Oidcc.Plug.AuthorizationCallback => {:ok, {:token, nil}}}
+               private: %{AuthorizationCallback => {:ok, {:token, nil}}}
              } =
                "get"
                |> conn("/", %{"code" => "code"})
@@ -135,7 +135,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
 
       assert %{
                halted: false,
-               private: %{Oidcc.Plug.AuthorizationCallback => {:error, :useragent_mismatch}}
+               private: %{AuthorizationCallback => {:error, :useragent_mismatch}}
              } =
                "get"
                |> conn("/", %{"code" => "code"})
@@ -163,7 +163,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
 
       assert %{
                halted: false,
-               private: %{Oidcc.Plug.AuthorizationCallback => {:error, :peer_ip_mismatch}}
+               private: %{AuthorizationCallback => {:error, :peer_ip_mismatch}}
              } =
                "get"
                |> conn("/", %{"code" => "code"})
@@ -211,7 +211,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         assert %{
                  halted: false,
                  private: %{
-                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, nil}}
+                   AuthorizationCallback => {:ok, {:token, nil}}
                  }
                } =
                  conn
@@ -253,7 +253,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         assert %{
                  halted: false,
                  private: %{
-                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
                  }
                } =
                  "get"
@@ -284,7 +284,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
       assert %{
                halted: false,
                private: %{
-                 Oidcc.Plug.AuthorizationCallback => {:error, {:missing_request_param, "code"}}
+                 AuthorizationCallback => {:error, {:missing_request_param, "code"}}
                }
              } =
                "get"
@@ -324,7 +324,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         assert %{
                  halted: false,
                  private: %{
-                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
                  }
                } =
                  "get"
@@ -343,7 +343,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
 
         assert %{
                  halted: false,
-                 private: %{Oidcc.Plug.AuthorizationCallback => {:error, :state_not_verified}}
+                 private: %{AuthorizationCallback => {:error, :state_not_verified}}
                } =
                  "get"
                  |> conn("/", %{"code" => "code", "state" => "state"})
@@ -362,7 +362,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         assert %{
                  halted: false,
                  private: %{
-                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
                  }
                } =
                  "get"
@@ -403,7 +403,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         assert %{
                  halted: false,
                  private: %{
-                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
                  }
                } =
                  "get"
@@ -438,7 +438,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
 
     assert %{
              halted: false,
-             private: %{Oidcc.Plug.AuthorizationCallback => {:error, {:none_alg_used, :token}}}
+             private: %{AuthorizationCallback => {:error, {:none_alg_used, :token}}}
            } =
              "get"
              |> conn("/", %{"code" => "code"})
@@ -469,7 +469,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
 
     assert %{
              halted: false,
-             private: %{Oidcc.Plug.AuthorizationCallback => {:error, :provider_not_ready}}
+             private: %{AuthorizationCallback => {:error, :provider_not_ready}}
            } =
              "get"
              |> conn("/", %{"code" => "code"})
@@ -503,7 +503,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
       assert %{
                halted: false,
                private: %{
-                 Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                 AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
                }
              } =
                "get"
@@ -577,7 +577,7 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
         assert %{
                  halted: false,
                  private: %{
-                   Oidcc.Plug.AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
                  }
                } =
                  "get"

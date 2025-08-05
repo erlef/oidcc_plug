@@ -58,7 +58,7 @@ defmodule Oidcc.Plug.IntrospectToken do
           client_id: String.t() | (-> String.t()),
           client_secret: String.t() | (-> String.t()),
           token_introspection_opts: :oidcc_token_introspection.opts(),
-          send_inactive_token_response: (conn :: Plug.Conn.t(), introspection :: Oidcc.TokenIntrospection.t() ->
+          send_inactive_token_response: (conn :: Plug.Conn.t(), introspection :: TokenIntrospection.t() ->
                                            Plug.Conn.t()),
           cache: Oidcc.Plug.Cache.t()
         ]
@@ -103,10 +103,10 @@ defmodule Oidcc.Plug.IntrospectToken do
     cache = Keyword.fetch!(opts, :cache)
 
     case cache.get(:introspection, access_token, conn) do
-      {:ok, %Oidcc.TokenIntrospection{active: true} = introspection} ->
+      {:ok, %TokenIntrospection{active: true} = introspection} ->
         put_private(conn, __MODULE__, introspection)
 
-      {:ok, %Oidcc.TokenIntrospection{active: false} = introspection} ->
+      {:ok, %TokenIntrospection{active: false} = introspection} ->
         conn
         |> put_private(__MODULE__, introspection)
         |> send_inactive_token_response.(introspection)
@@ -144,7 +144,7 @@ defmodule Oidcc.Plug.IntrospectToken do
   @doc false
   @spec send_inactive_token_response(
           conn :: Plug.Conn.t(),
-          introspection :: Oidcc.TokenIntrospection.t()
+          introspection :: TokenIntrospection.t()
         ) :: Plug.Conn.t()
   def send_inactive_token_response(conn, _introspection) do
     conn
