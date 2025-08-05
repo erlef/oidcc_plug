@@ -71,7 +71,7 @@ defmodule Oidcc.Plug.MixProject do
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18.1", only: :test, runtime: false},
-      {:igniter, "~> 0.5.50", optional: true},
+      {:igniter, "~> 0.5", optional: true},
       {:mock, "~> 0.3.8", only: :test},
       {:oidcc, "~> 3.5"},
       {:phoenix, "~> 1.7", only: [:dev, :test]},
