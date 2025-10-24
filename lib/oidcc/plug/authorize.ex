@@ -27,7 +27,7 @@ defmodule Oidcc.Plug.Authorize do
 
   @behaviour Plug
 
-  import Oidcc.Plug.Config, only: [evaluate_config: 1]
+  import Oidcc.Plug.Config, only: [evaluate_config: 2]
 
   import Plug.Conn,
     only: [send_resp: 3, put_resp_header: 3, put_session: 3, get_req_header: 2]
@@ -71,12 +71,12 @@ defmodule Oidcc.Plug.Authorize do
   @typedoc since: "0.1.0"
   @type opts :: [
           scopes: :oidcc_scope.scopes(),
-          redirect_uri: String.t() | (-> String.t()),
+          redirect_uri: String.t() | (-> String.t()) | (Plug.Conn.t() -> String.t()),
           url_extension: :oidcc_http_util.query_params(),
           provider: GenServer.name() | nil,
           client_store: module() | nil,
-          client_id: String.t() | (-> String.t()) | nil,
-          client_secret: String.t() | (-> String.t()) | nil,
+          client_id: String.t() | (-> String.t()) | (Plug.Conn.t() -> String.t()) | nil,
+          client_secret: String.t() | (-> String.t()) | (Plug.Conn.t() -> String.t()) | nil,
           client_context_opts: :oidcc_client_context.opts() | (-> :oidcc_client_context.opts()) | nil,
           client_profile_opts: :oidcc_profile.opts()
         ]
@@ -100,7 +100,7 @@ defmodule Oidcc.Plug.Authorize do
 
   @impl Plug
   def call(%Plug.Conn{params: params} = conn, opts) do
-    redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
+    redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config(conn)
     client_profile_opts = Keyword.get(opts, :client_profile_opts, %{profiles: []})
 
     state = Map.get(params, "state", :undefined)

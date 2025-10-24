@@ -1,7 +1,7 @@
 defmodule Oidcc.Plug.Utils do
   @moduledoc false
 
-  import Oidcc.Plug.Config, only: [evaluate_config: 1]
+  import Oidcc.Plug.Config, only: [evaluate_config: 2]
 
   alias Oidcc.ClientContext
 
@@ -15,9 +15,9 @@ defmodule Oidcc.Plug.Utils do
       client_store.get_client_context(conn)
     else
       provider = Keyword.get(opts, :provider)
-      client_id = opts |> Keyword.get(:client_id) |> evaluate_config()
-      client_secret = opts |> Keyword.get(:client_secret) |> evaluate_config()
-      client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config()
+      client_id = opts |> Keyword.get(:client_id) |> evaluate_config(conn)
+      client_secret = opts |> Keyword.get(:client_secret) |> evaluate_config(conn)
+      client_context_opts = opts |> Keyword.get(:client_context_opts, %{}) |> evaluate_config(conn)
 
       ClientContext.from_configuration_worker(
         provider,

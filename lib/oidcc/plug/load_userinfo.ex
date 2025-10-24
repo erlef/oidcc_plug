@@ -30,7 +30,7 @@ defmodule Oidcc.Plug.LoadUserinfo do
 
   @behaviour Plug
 
-  import Oidcc.Plug.Config, only: [evaluate_config: 1]
+  import Oidcc.Plug.Config, only: [evaluate_config: 2]
   import Plug.Conn, only: [put_private: 3, halt: 1, send_resp: 3]
 
   alias Oidcc.Plug.ExtractAuthorization
@@ -50,8 +50,8 @@ defmodule Oidcc.Plug.LoadUserinfo do
   @typedoc since: "0.1.0"
   @type opts :: [
           provider: GenServer.name(),
-          client_id: String.t() | (-> String.t()),
-          client_secret: String.t() | (-> String.t()),
+          client_id: String.t() | (-> String.t()) | (Plug.Conn.t() -> String.t()),
+          client_secret: String.t() | (-> String.t()) | (Plug.Conn.t() -> String.t()),
           userinfo_retrieve_opts: :oidcc_userinfo.retrieve_opts(),
           send_inactive_token_response: (conn :: Plug.Conn.t() -> Plug.Conn.t()),
           cache: Oidcc.Plug.Cache.t()
@@ -88,8 +88,8 @@ defmodule Oidcc.Plug.LoadUserinfo do
 
   def call(%Plug.Conn{private: %{ExtractAuthorization => access_token}} = conn, opts) do
     provider = Keyword.fetch!(opts, :provider)
-    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config()
-    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config()
+    client_id = opts |> Keyword.fetch!(:client_id) |> evaluate_config(conn)
+    client_secret = opts |> Keyword.fetch!(:client_secret) |> evaluate_config(conn)
 
     userinfo_retrieve_opts =
       opts
