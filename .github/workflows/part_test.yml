@@ -86,7 +86,7 @@ jobs:
       - run: mix coveralls.multiple --type html --type github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: mix_test-coverage-${{ matrix.elixir }}
           path: cover/
