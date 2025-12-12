@@ -53,7 +53,7 @@ defmodule Oidcc.Plug.ValidateJwtToken do
           client_id: String.t() | (-> String.t()),
           client_secret: String.t() | (-> String.t()),
           send_inactive_token_response: (conn :: Plug.Conn.t() -> Plug.Conn.t()),
-          validate_opts: Oidcc.Token.validate_id_token_opts()
+          validate_opts: Oidcc.Token.retrieve_opts()
         ]
 
   defmodule Error do
