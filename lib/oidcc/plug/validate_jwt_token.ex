@@ -15,7 +15,9 @@ defmodule Oidcc.Plug.ValidateJwtToken do
     plug Oidcc.Plug.ValidateJwtToken,
       provider: SampleApp.GoogleOpenIdConfigurationProvider,
       client_id: Application.compile_env!(:sample_app, [Oidcc.Plug.ValidateJwtToken, :client_id]),
-      client_secret: Application.compile_env!(:sample_app, [Oidcc.Plug.ValidateJwtToken, :client_secret])
+      client_secret: Application.compile_env!(:sample_app, [Oidcc.Plug.ValidateJwtToken, :client_secret]),
+      # optional validation options to pass to Oidcc.Token.validate_id_token/3
+      validate_opts: %{validate_azp: :any}
 
     plug SampleAppWeb.Router
   end
@@ -43,13 +45,15 @@ defmodule Oidcc.Plug.ValidateJwtToken do
   to fetch the client context from a store instead of using the `provider`, `client_id` and `client_secret`
   directly. This is useful for storing the client context in a database or other persistent
   storage.
+  * `validate_opts` - A map of options to pass to `Oidcc.Token.validate_id_token/3`.
   """
   @typedoc since: "0.1.0"
   @type opts :: [
           provider: GenServer.name(),
           client_id: String.t() | (-> String.t()),
           client_secret: String.t() | (-> String.t()),
-          send_inactive_token_response: (conn :: Plug.Conn.t() -> Plug.Conn.t())
+          send_inactive_token_response: (conn :: Plug.Conn.t() -> Plug.Conn.t()),
+          validate_opts: Oidcc.Token.retrieve_opts()
         ]
 
   defmodule Error do
@@ -74,7 +78,8 @@ defmodule Oidcc.Plug.ValidateJwtToken do
         :provider,
         :client_id,
         :client_secret,
-        send_inactive_token_response: &__MODULE__.send_inactive_token_response/1
+        send_inactive_token_response: &__MODULE__.send_inactive_token_response/1,
+        validate_opts: %{}
       ])
       |> Utils.validate_client_context_opts!()
 
@@ -86,7 +91,11 @@ defmodule Oidcc.Plug.ValidateJwtToken do
 
     refresh_jwks = Utils.get_refresh_jwks_fun(opts)
 
-    validate_opts = %{nonce: :any, refresh_jwks: refresh_jwks}
+    validate_opts =
+      Map.merge(
+        opts[:validate_opts],
+        %{nonce: :any, refresh_jwks: refresh_jwks}
+      )
 
     with {:ok, client_context} <-
            Utils.get_client_context(conn, opts),

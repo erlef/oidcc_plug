@@ -16,16 +16,21 @@ defmodule Oidcc.Plug.MixProject do
       """,
       package: package(),
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
+      dialyzer: [
+        plt_add_apps: [:mix]
+      ]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
         "coveralls.github": :test,
         "coveralls.multiple": :test
-      ],
-      dialyzer: [
-        plt_add_apps: [:mix]
       ]
     ]
   end
@@ -73,7 +78,7 @@ defmodule Oidcc.Plug.MixProject do
       {:excoveralls, "~> 0.18.1", only: :test, runtime: false},
       {:igniter, "~> 0.5.50 or ~> 0.6.0", optional: true},
       {:mock, "~> 0.3.8", only: :test},
-      {:oidcc, "~> 3.5"},
+      {:oidcc, "~> 3.7"},
       {:phoenix, "~> 1.7", only: [:dev, :test]},
       {:phx_new, "~> 1.7", only: :test},
       {:plug, "~> 1.14"},
