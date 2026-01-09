@@ -1,7 +1,20 @@
 version: 2
 updates:
-  - package-ecosystem: github-actions
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: daily
-    open-pull-requests-limit: 10
+      interval: "monthly"
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+  - package-ecosystem: mix
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      elixir:
+        applies-to: version-updates
+        patterns:
+          - "*"
