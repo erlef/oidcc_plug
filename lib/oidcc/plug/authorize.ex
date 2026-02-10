@@ -17,11 +17,6 @@ defmodule Oidcc.Plug.Authorize do
       ]
   end
   ```
-
-  ## Query Params
-
-  * `state` - State to relay to OpenID Provider. Commonly used for target redirect
-    URL after authorization.
   """
   @moduledoc since: "0.1.0"
 
@@ -99,11 +94,11 @@ defmodule Oidcc.Plug.Authorize do
       |> Utils.validate_client_context_opts!()
 
   @impl Plug
-  def call(%Plug.Conn{params: params} = conn, opts) do
+  def call(%Plug.Conn{} = conn, opts) do
     redirect_uri = opts |> Keyword.fetch!(:redirect_uri) |> evaluate_config()
     client_profile_opts = Keyword.get(opts, :client_profile_opts, %{profiles: []})
 
-    state = Map.get(params, "state", :undefined)
+    state = :crypto.strong_rand_bytes(32)
     state_verifier = :erlang.phash2(state)
 
     nonce = 31 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
