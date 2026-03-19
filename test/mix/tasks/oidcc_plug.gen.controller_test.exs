@@ -151,6 +151,7 @@ defmodule OidccPlug.Gen.ControllerTest do
      + |
      + |      <%= case Plug.Conn.get_session(@conn, "oidcc_claims") do %>
      + |        <% nil -> %>
+     + |          <%!-- To pass state through to the callback append a ?state=… parameter --%>
      + |          <a href={ ~p"/auth/authorize" }>
      + |            Log In
      + |          </a>
