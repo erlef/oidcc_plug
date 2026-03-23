@@ -24,6 +24,3 @@ oidcc_plug-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
-
-# Ignore Package Lock Files (not relevant for library)
-mix.lock
