@@ -32,6 +32,7 @@ defmodule Oidcc.Plug.IntrospectToken do
 
   import Plug.Conn, only: [put_private: 3, halt: 1, send_resp: 3]
 
+  alias Oidcc.Plug.Cache
   alias Oidcc.Plug.ExtractAuthorization
   alias Oidcc.Plug.Utils
   alias Oidcc.TokenIntrospection
@@ -60,7 +61,7 @@ defmodule Oidcc.Plug.IntrospectToken do
           token_introspection_opts: :oidcc_token_introspection.opts(),
           send_inactive_token_response: (conn :: Plug.Conn.t(), introspection :: TokenIntrospection.t() ->
                                            Plug.Conn.t()),
-          cache: Oidcc.Plug.Cache.t()
+          cache: Cache.t()
         ]
 
   defmodule Error do
@@ -112,26 +113,7 @@ defmodule Oidcc.Plug.IntrospectToken do
         |> send_inactive_token_response.(introspection)
 
       :miss ->
-        with {:ok, client_context} <- Utils.get_client_context(conn, opts),
-             {:ok, %TokenIntrospection{} = token_introspection} <-
-               TokenIntrospection.introspect(
-                 access_token,
-                 client_context,
-                 token_introspection_opts
-               ) do
-          :ok = cache.put(:introspection, access_token, token_introspection, conn)
-
-          if token_introspection.active do
-            put_private(conn, __MODULE__, token_introspection)
-          else
-            conn
-            |> put_private(__MODULE__, token_introspection)
-            |> send_inactive_token_response.(token_introspection)
-          end
-        else
-          {:error, reason} ->
-            raise Error, reason: reason
-        end
+        introspect_token(conn, access_token, opts, token_introspection_opts, cache, send_inactive_token_response)
     end
   end
 
@@ -150,5 +132,37 @@ defmodule Oidcc.Plug.IntrospectToken do
     conn
     |> halt()
     |> send_resp(:unauthorized, "The provided token is inactive")
+  end
+
+  @spec introspect_token(
+          conn :: Plug.Conn.t(),
+          access_token :: String.t(),
+          opts :: opts(),
+          token_introspection_opts :: :oidcc_token_introspection.opts(),
+          cache :: Cache.t(),
+          send_inactive_token_response ::
+            (Plug.Conn.t(), TokenIntrospection.t() -> Plug.Conn.t())
+        ) :: Plug.Conn.t()
+  defp introspect_token(conn, access_token, opts, token_introspection_opts, cache, send_inactive_token_response) do
+    with {:ok, client_context} <- Utils.get_client_context(conn, opts),
+         {:ok, %TokenIntrospection{} = token_introspection} <-
+           TokenIntrospection.introspect(
+             access_token,
+             client_context,
+             token_introspection_opts
+           ) do
+      :ok = cache.put(:introspection, access_token, token_introspection, conn)
+
+      if token_introspection.active do
+        put_private(conn, __MODULE__, token_introspection)
+      else
+        conn
+        |> put_private(__MODULE__, token_introspection)
+        |> send_inactive_token_response.(token_introspection)
+      end
+    else
+      {:error, reason} ->
+        raise Error, reason: reason
+    end
   end
 end
