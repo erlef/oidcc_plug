@@ -70,4 +70,23 @@ defmodule Oidcc.Plug.Utils do
 
     opts
   end
+
+  @spec add_csrf_payload(state :: String.t()) :: String.t()
+  def add_csrf_payload(state) do
+    authenticity_payload = 31 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
+    state = if is_binary(state), do: "#{state_authenticity_separator()}#{state}", else: ""
+    "#{authenticity_payload}#{state}"
+  end
+
+  @spec remove_csrf_payload(state :: String.t()) :: String.t() | nil
+  def remove_csrf_payload(authed_state) do
+    case String.split(authed_state, state_authenticity_separator(), parts: 2) do
+      [_auth_payload] -> nil
+      [_auth_payload, state] -> state
+    end
+  end
+
+  @spec state_authenticity_separator() :: String.t()
+  defp state_authenticity_separator(),
+    do: "<>"
 end
