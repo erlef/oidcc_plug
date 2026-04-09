@@ -124,6 +124,102 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
                |> AuthorizationCallback.call(opts)
     end
 
+    test "successful retrieve with CSRF state" do
+      with_mocks [
+        {Oidcc.Token, [],
+         retrieve: fn "code",
+                      _client_context,
+                      %{
+                        redirect_uri: "http://localhost:8080/oidc/return",
+                        nonce: _nonce,
+                        refresh_jwks: _refresh_fun
+                      } ->
+           {:ok, :token}
+         end},
+        {Oidcc.Userinfo, [],
+         retrieve: fn :token, _client_context, %{} ->
+           {:ok, %{"sub" => "sub"}}
+         end}
+      ] do
+        opts =
+          AuthorizationCallback.init(
+            provider: ProviderName,
+            client_id: fn -> "client_id" end,
+            client_secret: "client_secret",
+            redirect_uri: "http://localhost:8080/oidc/return"
+          )
+
+        assert %{
+                 halted: false,
+                 private: %{
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}},
+                   Authorize.State => "state"
+                 }
+               } =
+                 "get"
+                 |> conn("/", %{"code" => "code", "state" => "1234<>state"})
+                 |> Plug.Test.init_test_session(%{
+                   Authorize.get_session_name() => %{
+                     nonce: "nonce",
+                     peer_ip: {127, 0, 0, 1},
+                     useragent: "useragent",
+                     pkce_verifier: "pkce_verifier",
+                     state_verifier: :erlang.phash2("1234<>state")
+                   }
+                 })
+                 |> put_req_header("user-agent", "useragent")
+                 |> AuthorizationCallback.call(opts)
+      end
+    end
+
+    test "successful retrieve with CSRF only" do
+      with_mocks [
+        {Oidcc.Token, [],
+         retrieve: fn "code",
+                      _client_context,
+                      %{
+                        redirect_uri: "http://localhost:8080/oidc/return",
+                        nonce: _nonce,
+                        refresh_jwks: _refresh_fun
+                      } ->
+           {:ok, :token}
+         end},
+        {Oidcc.Userinfo, [],
+         retrieve: fn :token, _client_context, %{} ->
+           {:ok, %{"sub" => "sub"}}
+         end}
+      ] do
+        opts =
+          AuthorizationCallback.init(
+            provider: ProviderName,
+            client_id: fn -> "client_id" end,
+            client_secret: "client_secret",
+            redirect_uri: "http://localhost:8080/oidc/return"
+          )
+
+        assert %{
+                 halted: false,
+                 private: %{
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}},
+                   Authorize.State => nil
+                 }
+               } =
+                 "get"
+                 |> conn("/", %{"code" => "code", "state" => "1234"})
+                 |> Plug.Test.init_test_session(%{
+                   Authorize.get_session_name() => %{
+                     nonce: "nonce",
+                     peer_ip: {127, 0, 0, 1},
+                     useragent: "useragent",
+                     pkce_verifier: "pkce_verifier",
+                     state_verifier: :erlang.phash2("1234")
+                   }
+                 })
+                 |> put_req_header("user-agent", "useragent")
+                 |> AuthorizationCallback.call(opts)
+      end
+    end
+
     test "useragent mismatch" do
       opts =
         AuthorizationCallback.init(

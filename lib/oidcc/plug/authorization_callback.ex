@@ -50,6 +50,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     def handle_callback(
       %Plug.Conn{private: %{
         Oidcc.Plug.AuthorizationCallback => {:ok, {token, userinfo}}
+        Oidcc.Plug.Authorize.State => "query_param_state" | nil
       }},
       _params
     ) do
@@ -215,9 +216,15 @@ defmodule Oidcc.Plug.AuthorizationCallback do
         {:ok, {token, userinfo}}
       end
 
+    authorize_state =
+      params
+      |> Map.get("state", "")
+      |> Utils.remove_csrf_payload()
+
     conn
     |> delete_session(Authorize.get_session_name())
     |> put_private(__MODULE__, result)
+    |> put_private(Authorize.State, authorize_state)
   end
 
   @spec prepare_retrieve_opts(
