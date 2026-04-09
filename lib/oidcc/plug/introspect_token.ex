@@ -56,8 +56,8 @@ defmodule Oidcc.Plug.IntrospectToken do
   @typedoc since: "0.1.0"
   @type opts :: [
           provider: GenServer.name(),
-          client_id: String.t() | (-> String.t()),
-          client_secret: String.t() | (-> String.t()),
+          client_id: String.t() | (-> String.t()) | (Plug.Conn.t() -> String.t()),
+          client_secret: String.t() | (-> String.t()) | (Plug.Conn.t() -> String.t()),
           token_introspection_opts: :oidcc_token_introspection.opts(),
           send_inactive_token_response: (conn :: Plug.Conn.t(), introspection :: TokenIntrospection.t() ->
                                            Plug.Conn.t()),
