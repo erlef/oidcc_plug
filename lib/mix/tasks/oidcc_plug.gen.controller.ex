@@ -172,7 +172,7 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
           |> inspect()
           |> String.trim_trailing("Controller")
           |> Kernel.<>("HTML")
-          |> then(&Module.module_name(igniter, &1))
+          |> Module.parse()
 
         html_path =
           html_module_name |> inspect() |> String.split(".") |> List.last() |> Macro.underscore()
@@ -270,11 +270,9 @@ case Code.ensure_loaded(Igniter.Mix.Task) do
           html_module_name,
           Sourceror.to_string(
             quote do
-              defmodule unquote(html_module_name) do
-                use unquote(web_module), :html
+              use unquote(web_module), :html
 
-                embed_templates(unquote("#{html_path}/*"))
-              end
+              embed_templates(unquote("#{html_path}/*"))
             end
           )
         )
