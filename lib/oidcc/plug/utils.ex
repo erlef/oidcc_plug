@@ -87,6 +87,5 @@ defmodule Oidcc.Plug.Utils do
   end
 
   @spec state_authenticity_separator() :: String.t()
-  defp state_authenticity_separator(),
-    do: "<>"
+  defp state_authenticity_separator, do: "<>"
 end
