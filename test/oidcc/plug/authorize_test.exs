@@ -69,6 +69,35 @@ defmodule Oidcc.Plug.AuthorizeTest do
       assert ["http://example.com"] = get_resp_header(conn, "location")
     end
 
+    test_with_mock "manual redirect", %{}, Oidcc.Authorization, [],
+      create_redirect_url: fn _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
+        {:ok, "http://example.com"}
+      end do
+      opts =
+        Authorize.init(
+          provider: ProviderName,
+          client_id: "client_id",
+          client_secret: "client_secret",
+          redirect_uri: "http://localhost:8080/oidc/return",
+          redirect_mode: :manual
+        )
+
+      assert %{
+               halted: false,
+               status: nil,
+               private: %{
+                 Authorize => "http://example.com"
+               }
+             } =
+               conn =
+               "get"
+               |> conn("/", "")
+               |> Plug.Test.init_test_session(%{})
+               |> Authorize.call(opts)
+
+      assert [] = get_resp_header(conn, "location")
+    end
+
     test_with_mock "error handling", %{}, Oidcc.Authorization, [],
       create_redirect_url: fn _client_context, %{redirect_uri: "http://localhost:8080/oidc/return", nonce: _nonce} ->
         {:error, :provider_not_ready}
