@@ -157,7 +157,7 @@ defmodule Oidcc.Plug.Authorize do
 
   defp handle_redirect_uri(conn, redirect_uri, :inline) do
     conn
-    |> put_resp_header("location", IO.iodata_to_binary(redirect_uri))
+    |> put_resp_header("location", redirect_uri)
     |> send_resp(302, "")
   end
 
