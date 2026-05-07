@@ -78,7 +78,7 @@ defmodule Oidcc.Plug.MixProject do
       {:excoveralls, "~> 0.18.1", only: :test, runtime: false},
       {:igniter, "~> 0.5.50 or ~> 0.6.0 or ~> 0.7.0", optional: true},
       {:mock, "~> 0.3.8", only: :test},
-      {:oidcc, "~> 3.7"},
+      {:oidcc, git: "https://github.com/automatiq-team/oidcc", branch: "aud-any"},
       {:phoenix, "~> 1.7", only: [:dev, :test]},
       {:phx_new, "~> 1.7", only: :test},
       {:plug, "~> 1.14"},
