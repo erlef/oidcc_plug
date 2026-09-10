@@ -92,6 +92,48 @@ defmodule Oidcc.Plug.AuthorizationCallbackTest do
       end
     end
 
+    test "passes the audience to the token request" do
+      with_mocks [
+        {Oidcc.Token, [],
+         retrieve: fn "code", _client_context, %{audience: "https://example.com/oauth2/token"} ->
+           {:ok, :token}
+         end},
+        {Oidcc.Userinfo, [],
+         retrieve: fn :token, _client_context, %{} ->
+           {:ok, %{"sub" => "sub"}}
+         end}
+      ] do
+        opts =
+          AuthorizationCallback.init(
+            provider: ProviderName,
+            client_id: fn -> "client_id" end,
+            client_secret: "client_secret",
+            redirect_uri: "http://localhost:8080/oidc/return",
+            audience: "https://example.com/oauth2/token"
+          )
+
+        assert %{
+                 halted: false,
+                 private: %{
+                   AuthorizationCallback => {:ok, {:token, %{"sub" => "sub"}}}
+                 }
+               } =
+                 "get"
+                 |> conn("/", %{"code" => "code", "state" => "state"})
+                 |> Plug.Test.init_test_session(%{
+                   Authorize.get_session_name() => %{
+                     nonce: "nonce",
+                     peer_ip: {127, 0, 0, 1},
+                     useragent: "useragent",
+                     pkce_verifier: "pkce_verifier",
+                     state_verifier: :erlang.phash2("state")
+                   }
+                 })
+                 |> put_req_header("user-agent", "useragent")
+                 |> AuthorizationCallback.call(opts)
+      end
+    end
+
     test "successful retrieve with dynamic config" do
       with_mocks [
         {Oidcc.Token, [],

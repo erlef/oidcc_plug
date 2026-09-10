@@ -110,6 +110,10 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     authorization request
   * `retrieve_userinfo` - whether to load userinfo from the provider
   * `request_opts` - request opts for http calls to provider
+  * `preferred_auth_methods` - client authentication methods to try, in order
+  * `audience` - `aud` claim of the client assertion for `private_key_jwt` and
+    `client_secret_jwt`. Forwarded to `Oidcc.Token.retrieve/3`, which sets
+    the value to the issuer by default.
   * `client_store` - A module name that implements the `Oidcc.Plug.ClientStore` behaviour
   to fetch the client context from a store instead of using the `provider`, `client_id` and `client_secret`
   directly. This is useful for storing the client context in a database or other persistent
@@ -127,7 +131,9 @@ defmodule Oidcc.Plug.AuthorizationCallback do
           check_useragent: boolean(),
           check_peer_ip: boolean(),
           retrieve_userinfo: boolean(),
-          request_opts: :oidcc_http_util.request_opts()
+          request_opts: :oidcc_http_util.request_opts(),
+          preferred_auth_methods: [:oidcc_auth_util.auth_method(), ...],
+          audience: String.t()
         ]
 
   @typedoc since: "0.1.0"
@@ -164,6 +170,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
         :client_profile_opts,
         :redirect_uri,
         :preferred_auth_methods,
+        :audience,
         check_useragent: true,
         check_peer_ip: true,
         retrieve_userinfo: true,
@@ -231,7 +238,7 @@ defmodule Oidcc.Plug.AuthorizationCallback do
     scopes = :oidcc_scope.parse(scope)
 
     opts
-    |> Keyword.take([:request_opts, :preferred_auth_methods])
+    |> Keyword.take([:request_opts, :preferred_auth_methods, :audience])
     |> Map.new()
     |> Map.merge(%{
       nonce: session.nonce,
