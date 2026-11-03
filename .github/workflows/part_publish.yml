@@ -18,6 +18,12 @@ jobs:
 
     if: "${{ inputs.releaseName }}"
 
+    # The GitHub environment that hex_core's workload identity on hex.pm names
+    environment: release
+    permissions:
+      contents: write # push the version tag and create the GitHub release
+      id-token: write # the OIDC token mix hex.publish exchanges with Workload Identity
+
     steps:
       - uses: actions/checkout@v7
       - uses: erlef/setup-beam@v1
@@ -39,8 +45,6 @@ jobs:
             mix_hex_publish-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-
       - run: mix deps.get
       - run: mix hex.publish --yes
-        env:
-          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
 
   hex_build:
     name: mix hex.build
