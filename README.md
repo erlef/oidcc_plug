@@ -85,7 +85,7 @@ in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:oidcc_plug, "~> 0.5.1"}
+    {:oidcc_plug, "~> 0.5.2"}
   ]
 end
 ```
