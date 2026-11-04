@@ -1,3 +1,10 @@
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+# SPDX-FileCopyrightText: 2026 Benjamin Milde
+# SPDX-FileCopyrightText: 2026 Magnus Wulf
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule OidccPlug.Gen.ControllerTest do
   use ExUnit.Case, async: true
 

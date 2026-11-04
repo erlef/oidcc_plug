@@ -1,3 +1,12 @@
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+# SPDX-FileCopyrightText: 2025 Yannis Weishaupt
+# SPDX-FileCopyrightText: 2026 Giorgio Primola
+# SPDX-FileCopyrightText: 2026 Mathias Polligkeit
+# SPDX-FileCopyrightText: 2026 Mathias Wingert
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.Utils do
   @moduledoc false
 

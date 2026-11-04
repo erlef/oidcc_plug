@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Yannis Weishaupt
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.ClientStore do
   @moduledoc """
   Behaviour for retrieving and managing OpenID Connect client contexts.

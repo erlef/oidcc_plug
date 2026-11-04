@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2023 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2024 Ali Shirvani
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.ExtractAuthorization do
   @moduledoc """
   Extract `authorization` request header

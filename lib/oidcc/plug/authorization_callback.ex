@@ -1,3 +1,13 @@
+# SPDX-FileCopyrightText: 2023 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Enzo Baldisserri
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+# SPDX-FileCopyrightText: 2025 Yannis Weishaupt
+# SPDX-FileCopyrightText: 2026 Giorgio Primola
+# SPDX-FileCopyrightText: 2026 Mathias Polligkeit
+# SPDX-FileCopyrightText: 2026 Mathias Wingert
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.AuthorizationCallback do
   @moduledoc """
   Retrieve Token for Code Flow Authorization Callback

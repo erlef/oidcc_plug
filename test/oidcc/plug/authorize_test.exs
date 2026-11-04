@@ -1,3 +1,11 @@
+# SPDX-FileCopyrightText: 2023 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Enzo Baldisserri
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+# SPDX-FileCopyrightText: 2025 Yannis Weishaupt
+# SPDX-FileCopyrightText: 2026 Benjamin Milde
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.AuthorizeTest do
   use ExUnit.Case, async: false
   use Mimic
