@@ -4,7 +4,7 @@ defmodule Oidcc.Plug.MixProject do
   def project do
     [
       app: :oidcc_plug,
-      version: "0.5.2",
+      version: "0.5.3-beta.1",
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
