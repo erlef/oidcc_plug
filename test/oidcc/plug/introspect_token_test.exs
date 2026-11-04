@@ -1,7 +1,7 @@
 defmodule Oidcc.Plug.IntrospectTokenTest do
   use ExUnit.Case, async: false
+  use Mimic
 
-  import Mock
   import Plug.Conn
   import Plug.Test
 
@@ -11,32 +11,29 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
   doctest IntrospectToken
 
   describe inspect(&IntrospectToken.call/2) do
-    with_mocks [
-      {Oidcc.ClientContext, [],
-       from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-         {:ok, :client_context}
-       end},
-      {Oidcc.TokenIntrospection, [],
-       introspect: fn "token", :client_context, %{} ->
-         {:ok, %Oidcc.TokenIntrospection{active: true}}
-       end}
-    ] do
-      opts =
-        IntrospectToken.init(
-          provider: ProviderName,
-          client_id: "client_id",
-          client_secret: "client_secret"
-        )
+    stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+      {:ok, :client_context}
+    end)
 
-      assert %{
-               halted: false,
-               private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: true}}
-             } =
-               "get"
-               |> conn("/", "")
-               |> put_private(ExtractAuthorization, "token")
-               |> IntrospectToken.call(opts)
-    end
+    stub(Oidcc.TokenIntrospection, :introspect, fn "token", :client_context, %{} ->
+      {:ok, %Oidcc.TokenIntrospection{active: true}}
+    end)
+
+    opts =
+      IntrospectToken.init(
+        provider: ProviderName,
+        client_id: "client_id",
+        client_secret: "client_secret"
+      )
+
+    assert %{
+             halted: false,
+             private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: true}}
+           } =
+             "get"
+             |> conn("/", "")
+             |> put_private(ExtractAuthorization, "token")
+             |> IntrospectToken.call(opts)
 
     test "skips without token" do
       opts =
@@ -68,90 +65,81 @@ defmodule Oidcc.Plug.IntrospectTokenTest do
       end
     end
 
-    with_mocks [
-      {Oidcc.ClientContext, [],
-       from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-         {:ok, :client_context}
-       end},
-      {Oidcc.TokenIntrospection, [],
-       introspect: fn "token", :client_context, %{} ->
-         {:error, :reason}
-       end}
-    ] do
-      opts =
-        IntrospectToken.init(
-          provider: ProviderName,
-          client_id: "client_id",
-          client_secret: "client_secret"
-        )
+    stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+      {:ok, :client_context}
+    end)
 
-      assert_raise IntrospectToken.Error, fn ->
-        "get"
-        |> conn("/", "")
-        |> put_private(ExtractAuthorization, "token")
-        |> IntrospectToken.call(opts)
-      end
+    stub(Oidcc.TokenIntrospection, :introspect, fn "token", :client_context, %{} ->
+      {:error, :reason}
+    end)
+
+    opts =
+      IntrospectToken.init(
+        provider: ProviderName,
+        client_id: "client_id",
+        client_secret: "client_secret"
+      )
+
+    assert_raise IntrospectToken.Error, fn ->
+      "get"
+      |> conn("/", "")
+      |> put_private(ExtractAuthorization, "token")
+      |> IntrospectToken.call(opts)
     end
 
-    with_mocks [
-      {Oidcc.ClientContext, [],
-       from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-         {:ok, :client_context}
-       end},
-      {Oidcc.TokenIntrospection, [],
-       introspect: fn "token", :client_context, %{} ->
-         {:ok, %Oidcc.TokenIntrospection{active: false}}
-       end}
-    ] do
-      opts =
-        IntrospectToken.init(
-          provider: ProviderName,
-          client_id: "client_id",
-          client_secret: "client_secret"
-        )
+    stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+      {:ok, :client_context}
+    end)
 
-      assert %{
-               halted: true,
-               status: 401,
-               private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: false}},
-               resp_body: "The provided token is inactive"
-             } =
-               "get"
-               |> conn("/", "")
-               |> put_private(ExtractAuthorization, "token")
-               |> IntrospectToken.call(opts)
-    end
+    stub(Oidcc.TokenIntrospection, :introspect, fn "token", :client_context, %{} ->
+      {:ok, %Oidcc.TokenIntrospection{active: false}}
+    end)
 
-    with_mocks [
-      {Oidcc.ClientContext, [],
-       from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-         {:ok, :client_context}
-       end},
-      {Oidcc.TokenIntrospection, [],
-       introspect: fn "token", :client_context, %{} ->
-         {:ok, %Oidcc.TokenIntrospection{active: false}}
-       end}
-    ] do
-      opts =
-        IntrospectToken.init(
-          provider: ProviderName,
-          client_id: "client_id",
-          client_secret: "client_secret",
-          send_inactive_token_response: fn conn, _introspection ->
-            Plug.Conn.send_resp(conn, 500, "invalid")
-          end
-        )
+    opts =
+      IntrospectToken.init(
+        provider: ProviderName,
+        client_id: "client_id",
+        client_secret: "client_secret"
+      )
 
-      assert %{
-               status: 500,
-               private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: false}},
-               resp_body: "invalid"
-             } =
-               "get"
-               |> conn("/", "")
-               |> put_private(ExtractAuthorization, "token")
-               |> IntrospectToken.call(opts)
-    end
+    assert %{
+             halted: true,
+             status: 401,
+             private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: false}},
+             resp_body: "The provided token is inactive"
+           } =
+             "get"
+             |> conn("/", "")
+             |> put_private(ExtractAuthorization, "token")
+             |> IntrospectToken.call(opts)
+
+    stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+      {:ok, :client_context}
+    end)
+
+    stub(Oidcc.TokenIntrospection, :introspect, fn "token", :client_context, %{} ->
+      {:ok, %Oidcc.TokenIntrospection{active: false}}
+    end)
+
+    opts =
+      IntrospectToken.init(
+        provider: ProviderName,
+        client_id: "client_id",
+        client_secret: "client_secret",
+        send_inactive_token_response: fn conn, _introspection ->
+          Plug.Conn.send_resp(conn, 500, "invalid")
+        end
+      )
+
+    assert %{
+             status: 500,
+             private: %{IntrospectToken => %Oidcc.TokenIntrospection{active: false}},
+             resp_body: "invalid"
+           } =
+             "get"
+             |> conn("/", "")
+             |> put_private(ExtractAuthorization, "token")
+             |> IntrospectToken.call(opts)
 
     test "uses cache if provided and found" do
       defmodule ActiveCache do

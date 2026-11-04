@@ -1,8 +1,8 @@
 defmodule Oidcc.Plug.UtilsTest do
   # set to false because we're using mocks
   use ExUnit.Case, async: false
+  use Mimic
 
-  import Mock
   import Plug.Test
 
   alias Oidcc.Plug.Utils
@@ -61,13 +61,12 @@ defmodule Oidcc.Plug.UtilsTest do
       ]
 
       # Mock the external function call
-      with_mock Oidcc.ClientContext,
-        from_configuration_worker: fn :provider_id, "client_id", "client_secret", %{} ->
-          expect_result
-        end do
-        conn = conn(:get, "/")
-        assert Utils.get_client_context(conn, opts) == expect_result
-      end
+      stub(Oidcc.ClientContext, :from_configuration_worker, fn :provider_id, "client_id", "client_secret", %{} ->
+        expect_result
+      end)
+
+      conn = conn(:get, "/")
+      assert Utils.get_client_context(conn, opts) == expect_result
     end
 
     test "can get client context from client_store" do
@@ -118,13 +117,12 @@ defmodule Oidcc.Plug.UtilsTest do
       ]
 
       # Mock the external function call
-      with_mock Oidcc.ClientContext,
-        from_configuration_worker: fn :provider_id, "dynamic_id", "dynamic_secret", %{} ->
-          expect_result
-        end do
-        conn = conn(:get, "/")
-        assert Utils.get_client_context(conn, opts) == expect_result
-      end
+      stub(Oidcc.ClientContext, :from_configuration_worker, fn :provider_id, "dynamic_id", "dynamic_secret", %{} ->
+        expect_result
+      end)
+
+      conn = conn(:get, "/")
+      assert Utils.get_client_context(conn, opts) == expect_result
     end
   end
 
@@ -155,15 +153,14 @@ defmodule Oidcc.Plug.UtilsTest do
     test "uses oidcc_jwt_util for provider configuration" do
       refresh_fun = :test_refresh_fun
 
-      with_mock :oidcc_jwt_util,
-        refresh_jwks_fun: fn provider_id ->
-          assert provider_id == :test_provider
-          refresh_fun
-        end do
-        opts = [provider: :test_provider]
+      stub(:oidcc_jwt_util, :refresh_jwks_fun, fn provider_id ->
+        assert provider_id == :test_provider
+        refresh_fun
+      end)
 
-        assert Utils.put_refresh_jwks(%{}, :client_context, opts) == %{refresh_jwks: refresh_fun}
-      end
+      opts = [provider: :test_provider]
+
+      assert Utils.put_refresh_jwks(%{}, :client_context, opts) == %{refresh_jwks: refresh_fun}
     end
 
     test "adds a fun with the arity oidcc calls it with" do

@@ -1,7 +1,7 @@
 defmodule Oidcc.Plug.LoadUserinfoTest do
   use ExUnit.Case, async: false
+  use Mimic
 
-  import Mock
   import Plug.Conn
   import Plug.Test
 
@@ -11,10 +11,11 @@ defmodule Oidcc.Plug.LoadUserinfoTest do
   doctest LoadUserinfo
 
   describe inspect(&LoadUserinfo.call/2) do
-    test_with_mock "validates token using userinfo", %{}, Oidcc, [],
-      retrieve_userinfo: fn "token", ProviderName, "client_id", "client_secret", %{} ->
+    test "validates token using userinfo" do
+      stub(Oidcc, :retrieve_userinfo, fn "token", ProviderName, "client_id", "client_secret", %{} ->
         {:ok, %{"sub" => "sub"}}
-      end do
+      end)
+
       opts =
         LoadUserinfo.init(
           provider: ProviderName,
@@ -62,10 +63,11 @@ defmodule Oidcc.Plug.LoadUserinfoTest do
                |> LoadUserinfo.call(opts)
     end
 
-    test_with_mock "relays userinfo error", %{}, Oidcc, [],
-      retrieve_userinfo: fn "token", ProviderName, "client_id", "client_secret", %{} ->
+    test "relays userinfo error" do
+      stub(Oidcc, :retrieve_userinfo, fn "token", ProviderName, "client_id", "client_secret", %{} ->
         {:error, :reason}
-      end do
+      end)
+
       opts =
         LoadUserinfo.init(
           provider: ProviderName,
@@ -81,10 +83,11 @@ defmodule Oidcc.Plug.LoadUserinfoTest do
       end
     end
 
-    test_with_mock "sends error response with inactive token", %{}, Oidcc, [],
-      retrieve_userinfo: fn "token", ProviderName, "client_id", "client_secret", %{} ->
+    test "sends error response with inactive token" do
+      stub(Oidcc, :retrieve_userinfo, fn "token", ProviderName, "client_id", "client_secret", %{} ->
         {:error, {:http_error, 401, "invalid_token"}}
-      end do
+      end)
+
       opts =
         LoadUserinfo.init(
           provider: ProviderName,
@@ -103,10 +106,11 @@ defmodule Oidcc.Plug.LoadUserinfoTest do
                |> LoadUserinfo.call(opts)
     end
 
-    test_with_mock "can customize inactive token response", %{}, Oidcc, [],
-      retrieve_userinfo: fn "token", ProviderName, "client_id", "client_secret", %{} ->
+    test "can customize inactive token response" do
+      stub(Oidcc, :retrieve_userinfo, fn "token", ProviderName, "client_id", "client_secret", %{} ->
         {:error, {:http_error, 401, "invalid_token"}}
-      end do
+      end)
+
       opts =
         LoadUserinfo.init(
           provider: ProviderName,
