@@ -4,9 +4,6 @@ on:
       releaseName:
         required: false
         type: string
-    secrets:
-      HEX_API_KEY:
-        required: false
 
 name: "Publish"
 
