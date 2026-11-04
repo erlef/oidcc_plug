@@ -1,9 +1,10 @@
 on:
   workflow_call:
     inputs:
-      releaseName:
-        required: false
-        type: string
+      attest:
+        description: "Attest the build"
+        default: true
+        type: boolean
 
 name: "Documentation"
 
@@ -13,9 +14,14 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
     steps:
       - uses: actions/checkout@v7
-      - uses: erlef/setup-elixir@v1
+      - uses: erlef/setup-beam@v1
         id: setupBEAM
         with:
           version-file: .tool-versions
@@ -34,34 +40,24 @@ jobs:
             docs-bdepsuild-{{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ steps.setupBEAM.outputs.elixir-version }}-
       - run: mix deps.get
       - run: mix docs
+
+      - name: "Create Docs Archive"
+        run: |
+          tar -czvf docs.tar.gz doc
+
+      - name: "Attest docs provenance"
+        uses: actions/attest-build-provenance@v4
+        id: attest-docs-provenance
+        if: "${{ inputs.attest }}"
+        with:
+          subject-path: 'docs.tar.gz'
+      - name: "Copy docs provenance"
+        if: "${{ inputs.attest }}"
+        run: cp "$ATTESTATION" docs.tar.gz.sigstore
+        env:
+          ATTESTATION: "${{ steps.attest-docs-provenance.outputs.bundle-path }}"
+
       - uses: actions/upload-artifact@v7
         with:
           name: docs
-          path: doc
-
-  upload:
-    name: "Upload"
-
-    runs-on: ubuntu-latest
-
-    if: ${{ inputs.releaseName }}
-
-    needs: ["generate"]
-
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v8
-        with:
-          name: docs
-          path: docs
-      - run: |
-          tar -czvf docs.tar.gz docs
-      - name: Upload
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload --clobber "${{ inputs.releaseName }}" \
-            docs.tar.gz
+          path: docs.tar.gz*

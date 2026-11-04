@@ -12,45 +12,32 @@ on:
 name: "Release"
 
 jobs:
-  create_prerelease:
-    name: Create Prerelease
-
-    if: ${{ !inputs.stable }}
+  create:
+    name: Create Release
 
     runs-on: ubuntu-latest
+
+    environment: release
 
     permissions:
       contents: write
 
     steps:
-      - name: Create draft prerelease
+      - name: "Download Docs Artifact"
+        uses: actions/download-artifact@v8
+        with:
+          name: docs
+          path: .
+
+      - name: Create release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          gh release create \
-            --repo ${{ github.repository }} \
-            --title ${{ inputs.releaseName }} \
-            --prerelease \
-            --generate-notes \
-            ${{ inputs.releaseName }}
-
-  create_stable:
-    name: Create Stable
-
-    if: ${{ inputs.stable }}
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
-    steps:
-      - name: Create draft release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          gh release create \
-            --repo ${{ github.repository }} \
-            --title ${{ inputs.releaseName }} \
-            --generate-notes \
-            ${{ inputs.releaseName }}
+          RELEASE_NAME: ${{ inputs.releaseName }}
+        run: >-
+          gh release create
+          --repo "$GITHUB_REPOSITORY"
+          --title "$RELEASE_NAME"
+          --generate-notes
+          ${{ !inputs.stable && '--prerelease' || '' }}
+          "$RELEASE_NAME"
+          docs.tar.gz*
