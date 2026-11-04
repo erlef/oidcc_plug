@@ -10,7 +10,7 @@ jobs:
   test:
     name: "Test"
 
-    uses: ./.github/workflows/part_test.yml
+    uses: $/.github/workflows/part_test.yml
 
   docs:
     name: "Docs"
@@ -20,6 +20,6 @@ jobs:
       contents: read
       attestations: write
 
-    uses: ./.github/workflows/part_docs.yml
+    uses: $/.github/workflows/part_docs.yml
     with:
       attest: false
