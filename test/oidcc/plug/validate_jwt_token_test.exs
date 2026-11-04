@@ -1,7 +1,7 @@
 defmodule Oidcc.Plug.ValidateJwtTokenTest do
   use ExUnit.Case, async: false
+  use Mimic
 
-  import Mock
   import Plug.Conn
   import Plug.Test
 
@@ -13,32 +13,29 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
 
   describe inspect(&ValidateJwtToken.call/2) do
     test "validates token using jwt" do
-      with_mocks [
-        {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-           {:ok, :client_context}
-         end},
-        {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
-           {:ok, %{"sub" => "sub"}}
-         end}
-      ] do
-        opts =
-          ValidateJwtToken.init(
-            provider: ProviderName,
-            client_id: "client_id",
-            client_secret: "client_secret"
-          )
+      stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+        {:ok, :client_context}
+      end)
 
-        assert %{
-                 halted: false,
-                 private: %{ValidateJwtToken => %{"sub" => "sub"}}
-               } =
-                 "get"
-                 |> conn("/", "")
-                 |> put_private(ExtractAuthorization, "token")
-                 |> ValidateJwtToken.call(opts)
-      end
+      stub(Oidcc.Token, :validate_id_token, fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
+        {:ok, %{"sub" => "sub"}}
+      end)
+
+      opts =
+        ValidateJwtToken.init(
+          provider: ProviderName,
+          client_id: "client_id",
+          client_secret: "client_secret"
+        )
+
+      assert %{
+               halted: false,
+               private: %{ValidateJwtToken => %{"sub" => "sub"}}
+             } =
+               "get"
+               |> conn("/", "")
+               |> put_private(ExtractAuthorization, "token")
+               |> ValidateJwtToken.call(opts)
     end
 
     test "skips without token" do
@@ -72,94 +69,85 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
     end
 
     test "relays validation error" do
-      with_mocks [
-        {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-           {:ok, :client_context}
-         end},
-        {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
-           {:error, :reason}
-         end}
-      ] do
-        opts =
-          ValidateJwtToken.init(
-            provider: ProviderName,
-            client_id: "client_id",
-            client_secret: "client_secret"
-          )
+      stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+        {:ok, :client_context}
+      end)
 
-        assert_raise ValidateJwtToken.Error, fn ->
-          "get"
-          |> conn("/", "")
-          |> put_private(ExtractAuthorization, "token")
-          |> ValidateJwtToken.call(opts)
-        end
+      stub(Oidcc.Token, :validate_id_token, fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
+        {:error, :reason}
+      end)
+
+      opts =
+        ValidateJwtToken.init(
+          provider: ProviderName,
+          client_id: "client_id",
+          client_secret: "client_secret"
+        )
+
+      assert_raise ValidateJwtToken.Error, fn ->
+        "get"
+        |> conn("/", "")
+        |> put_private(ExtractAuthorization, "token")
+        |> ValidateJwtToken.call(opts)
       end
     end
 
     test "sends error response with inactive token" do
-      with_mocks [
-        {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-           {:ok, :client_context}
-         end},
-        {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
-           {:error, :token_expired}
-         end}
-      ] do
-        opts =
-          ValidateJwtToken.init(
-            provider: ProviderName,
-            client_id: "client_id",
-            client_secret: "client_secret"
-          )
+      stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+        {:ok, :client_context}
+      end)
 
-        assert %{
-                 halted: true,
-                 status: 401,
-                 private: %{ValidateJwtToken => nil},
-                 resp_body: "The provided token is inactive"
-               } =
-                 "get"
-                 |> conn("/", "")
-                 |> put_private(ExtractAuthorization, "token")
-                 |> ValidateJwtToken.call(opts)
-      end
+      stub(Oidcc.Token, :validate_id_token, fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
+        {:error, :token_expired}
+      end)
+
+      opts =
+        ValidateJwtToken.init(
+          provider: ProviderName,
+          client_id: "client_id",
+          client_secret: "client_secret"
+        )
+
+      assert %{
+               halted: true,
+               status: 401,
+               private: %{ValidateJwtToken => nil},
+               resp_body: "The provided token is inactive"
+             } =
+               "get"
+               |> conn("/", "")
+               |> put_private(ExtractAuthorization, "token")
+               |> ValidateJwtToken.call(opts)
     end
 
     test "can customize inactive token response" do
-      with_mocks [
-        {Oidcc.ClientContext, [],
-         from_configuration_worker: fn ProviderName, "client_id", "client_secret", %{} ->
-           {:ok, :client_context}
-         end},
-        {Oidcc.Token, [],
-         validate_id_token: fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
-           {:error, :token_expired}
-         end}
-      ] do
-        opts =
-          ValidateJwtToken.init(
-            provider: ProviderName,
-            client_id: "client_id",
-            client_secret: "client_secret",
-            send_inactive_token_response: fn conn ->
-              Plug.Conn.send_resp(conn, 500, "invalid")
-            end
-          )
+      stub(Oidcc.ClientContext, :from_configuration_worker, fn ProviderName, "client_id", "client_secret", %{} ->
+        {:ok, :client_context}
+      end)
 
-        assert %{
-                 status: 500,
-                 private: %{ValidateJwtToken => nil},
-                 resp_body: "invalid"
-               } =
-                 "get"
-                 |> conn("/", "")
-                 |> put_private(ExtractAuthorization, "token")
-                 |> ValidateJwtToken.call(opts)
-      end
+      stub(Oidcc.Token, :validate_id_token, fn "token", :client_context, %{nonce: :any, refresh_jwks: _} ->
+        {:error, :token_expired}
+      end)
+
+      opts =
+        ValidateJwtToken.init(
+          provider: ProviderName,
+          client_id: "client_id",
+          client_secret: "client_secret",
+          send_inactive_token_response: fn conn ->
+            Plug.Conn.send_resp(conn, 500, "invalid")
+          end
+        )
+
+      assert %{
+               status: 500,
+               private: %{ValidateJwtToken => nil},
+               resp_body: "invalid"
+             } =
+               "get"
+               |> conn("/", "")
+               |> put_private(ExtractAuthorization, "token")
+               |> ValidateJwtToken.call(opts)
     end
   end
 
@@ -215,26 +203,25 @@ defmodule Oidcc.Plug.ValidateJwtTokenTest do
     test "validates token using the client context from the store" do
       test_pid = self()
 
-      with_mock Oidcc.Token, [],
-        validate_id_token: fn "token", client_context, %{nonce: :any, refresh_jwks: refresh_jwks} ->
-          send(test_pid, {:validated_with, client_context, refresh_jwks})
-          {:ok, %{"sub" => "sub"}}
-        end do
-        opts = ValidateJwtToken.init(client_store: TestClientStore)
+      stub(Oidcc.Token, :validate_id_token, fn "token", client_context, %{nonce: :any, refresh_jwks: refresh_jwks} ->
+        send(test_pid, {:validated_with, client_context, refresh_jwks})
+        {:ok, %{"sub" => "sub"}}
+      end)
 
-        assert %{halted: false, private: %{ValidateJwtToken => %{"sub" => "sub"}}} =
-                 "get"
-                 |> conn("/", "")
-                 |> put_private(ExtractAuthorization, "token")
-                 |> ValidateJwtToken.call(opts)
+      opts = ValidateJwtToken.init(client_store: TestClientStore)
 
-        assert_received {:validated_with, :client_context_from_store, refresh_jwks}
+      assert %{halted: false, private: %{ValidateJwtToken => %{"sub" => "sub"}}} =
+               "get"
+               |> conn("/", "")
+               |> put_private(ExtractAuthorization, "token")
+               |> ValidateJwtToken.call(opts)
 
-        # oidcc calls the refresh fun with (jwks, kid), and it must reach the
-        # store with the client context
-        assert refresh_jwks.(:stale_jwks, "unknown_kid") ==
-                 {:ok, {:refreshed_by_store, :client_context_from_store}}
-      end
+      assert_received {:validated_with, :client_context_from_store, refresh_jwks}
+
+      # oidcc calls the refresh fun with (jwks, kid), and it must reach the
+      # store with the client context
+      assert refresh_jwks.(:stale_jwks, "unknown_kid") ==
+               {:ok, {:refreshed_by_store, :client_context_from_store}}
     end
 
     test "relays a client_store error" do
