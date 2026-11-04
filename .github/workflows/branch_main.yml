@@ -5,21 +5,30 @@ on:
 
 name: "Main Branch"
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: "Test"
 
-    uses: ./.github/workflows/part_test.yml
+    permissions:
+      contents: read
+      security-events: write
+
+    uses: $/.github/workflows/part_test.yml
 
   docs:
     name: "Docs"
 
-    uses: ./.github/workflows/part_docs.yml
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
 
-  publish:
-    name: "Publish"
-
-    uses: ./.github/workflows/part_publish.yml
+    uses: $/.github/workflows/part_docs.yml
+    with:
+      attest: false
 
   dependency_submission:
     name: "Mix Dependency Submission"
@@ -27,4 +36,4 @@ jobs:
     permissions:
       contents: write
 
-    uses: ./.github/workflows/part_dependency_submission.yml
+    uses: $/.github/workflows/part_dependency_submission.yml

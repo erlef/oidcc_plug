@@ -7,30 +7,39 @@ on:
 
 name: "Beta Tag"
 
+permissions:
+  contents: read
+
 jobs:
-  release:
-    name: "Release"
-
-    uses: ./.github/workflows/part_release.yml
-    with:
-      releaseName: "${{ github.ref_name }}"
-
   docs:
     name: "Docs"
 
-    needs: ["release"]
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
 
-    uses: ./.github/workflows/part_docs.yml
-    with:
-      releaseName: "${{ github.ref_name }}"
+    uses: $/.github/workflows/part_docs.yml
 
   publish:
     name: "Publish"
 
-    needs: ["release"]
+    permissions:
+      contents: write
+      id-token: write
 
-    uses: ./.github/workflows/part_publish.yml
+    uses: $/.github/workflows/part_publish.yml
     with:
       releaseName: "${{ github.ref_name }}"
-    secrets:
-      HEX_API_KEY: "${{ secrets.HEX_API_KEY }}"
+
+  release:
+    name: "Release"
+
+    needs: ["docs"]
+
+    permissions:
+      contents: write
+
+    uses: $/.github/workflows/part_release.yml
+    with:
+      releaseName: "${{ github.ref_name }}"
