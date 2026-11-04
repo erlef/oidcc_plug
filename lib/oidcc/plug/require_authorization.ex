@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2024 Ali Shirvani
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.RequireAuthorization do
   @moduledoc """
   Ensure authorization token provided.

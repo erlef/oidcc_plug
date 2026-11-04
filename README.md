@@ -1,3 +1,12 @@
+<!--
+SPDX-FileCopyrightText: 2023 Erlang Ecosystem Foundation
+SPDX-FileCopyrightText: 2024 Ali Shirvani
+SPDX-FileCopyrightText: 2025 Michael Ruoss
+SPDX-FileCopyrightText: 2026 Benjamin Milde
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 <div style="margin-right: 15px; float: left;">
   <img
     align="left"

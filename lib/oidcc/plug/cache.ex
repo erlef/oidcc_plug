@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Erlang Ecosystem Foundation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.Cache do
   @moduledoc """
   Behaviour to cache introspection / userinfo requests

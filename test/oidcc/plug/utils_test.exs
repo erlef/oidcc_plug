@@ -1,3 +1,10 @@
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+# SPDX-FileCopyrightText: 2025 Yannis Weishaupt
+# SPDX-FileCopyrightText: 2026 Mathias Polligkeit
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.UtilsTest do
   # set to false because we're using mocks
   use ExUnit.Case, async: false

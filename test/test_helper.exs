@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Erlang Ecosystem Foundation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 Mimic.copy(:oidcc_jwt_util)
 Mimic.copy(Oidcc)
 Mimic.copy(Oidcc.Authorization)

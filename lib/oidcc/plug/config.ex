@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2026 Mathias Wingert
+#
+# SPDX-License-Identifier: Apache-2.0
+
 defmodule Oidcc.Plug.Config do
   @moduledoc false
 

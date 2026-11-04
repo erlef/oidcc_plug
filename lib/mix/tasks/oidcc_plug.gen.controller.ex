@@ -1,3 +1,11 @@
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+# SPDX-FileCopyrightText: 2025 Matt Enlow
+# SPDX-FileCopyrightText: 2025 Michael Ruoss
+# SPDX-FileCopyrightText: 2026 Benjamin Milde
+# SPDX-FileCopyrightText: 2026 Magnus Wulf
+#
+# SPDX-License-Identifier: Apache-2.0
+
 short_doc = "Generate an auth controller for your OpenID provider"
 
 example = """
