@@ -7,6 +7,9 @@ on:
 
 name: "Publish"
 
+permissions:
+  contents: read
+
 jobs:
   hex_publish:
     name: mix hex.publish
