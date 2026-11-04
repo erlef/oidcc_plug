@@ -139,6 +139,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      security-events: write
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
@@ -166,7 +170,14 @@ jobs:
           restore-keys: |
             credo-deps-${{ runner.os }}-${{ steps.setupBEAM.outputs.otp-version }}-${{ steps.setupBEAM.outputs.elixir-version }}-
       - run: mix deps.get
-      - run: mix credo
+      - run: mix deps.compile
+      - run: mix credo --format sarif > results.sarif
+      - name: Upload SARIF file
+        if: ${{ !cancelled() }}
+        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          sarif_file: results.sarif
+          category: credo
 
   dialyxir:
     name: mix dialyzer
