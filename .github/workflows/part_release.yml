@@ -41,6 +41,12 @@ jobs:
           name: docs
           path: .
 
+      - name: "Download SBoM Artifact"
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sbom
+          path: .
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -52,4 +58,4 @@ jobs:
           --generate-notes
           ${{ !inputs.stable && '--prerelease' || '' }}
           "$RELEASE_NAME"
-          docs.tar.gz*
+          docs.tar.gz* sbom.spdx*

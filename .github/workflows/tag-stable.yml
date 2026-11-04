@@ -23,6 +23,16 @@ jobs:
 
     uses: $/.github/workflows/part_docs.yml
 
+  license:
+    name: "License"
+
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
+    uses: $/.github/workflows/part_license.yml
+
   publish:
     name: "Publish"
 
@@ -37,7 +47,7 @@ jobs:
   release:
     name: "Release"
 
-    needs: ["docs"]
+    needs: ["docs", "license"]
 
     permissions:
       contents: write

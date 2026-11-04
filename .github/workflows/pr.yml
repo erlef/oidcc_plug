@@ -23,6 +23,18 @@ jobs:
 
     uses: $/.github/workflows/part_test.yml
 
+  license:
+    name: "License"
+
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
+    uses: $/.github/workflows/part_license.yml
+    with:
+      attest: false
+
   docs:
     name: "Docs"
 
